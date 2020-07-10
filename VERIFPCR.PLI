@@ -1,0 +1,72 @@
+*Process Inc, Source, Stmt, Gostmt, Langlvl(Sprog);                     VER00010
+*Process Margins(2, 72),List;                                           VER00020
+*Process System(CMS);                                                   VER00030
+ Verpcr:                                                                VER00040
+    Procedure Options(Main Noexecops) Reorder;                          VER00050
+    /* Verify the installation of the PCR package */                    VER00060
+    /*                                            */                    VER00070
+    /* To generate:                               */                    VER00080
+    /*  1) compile:                               */                    VER00090
+    /*     GL MACLIB PCR                          */                    VER00100
+    /*     PLI  VERIFPCR                          */                    VER00110
+    /*  2) load:                                  */                    VER00120
+    /*     GL TXTLIB sceelked                     */                    VER00130
+    /*     LOAD VERIFPCR (RLDSAVE                 */                    VER00140
+    /*  3) gen:                                   */                    VER00150
+    /*     GENMOD VERIFPCR (FROM ceestart         */                    VER00160
+                                                                        VER00170
+       %Include Pcrcbp;                                                 VER00180
+       %Include Pcrevp;                                                 VER00190
+       Dcl                                                              VER00200
+          Parm                Char(300) Varying;                        VER00210
+       call PCRGETC(PCRCB_ptr);                                         VER00220
+       parm = SUBSTR(PCRCB_arg_c256,1,PCRCB_arg_len);                   VER00230
+       display(parm);                                                   VER00240
+                                                                        VER00250
+  /* If called as a Rexx Function or Subroutine, print parms */         VER00260
+       If Pcrcb_type = 'REXX' Then                                      VER00270
+          Do;                                                           VER00280
+             Rxarg_ptr = Pcrcb_rx_arglist;                              VER00290
+             Do K = 1 To Pcrcb_rx_argcnt;                               VER00300
+              display ('Next Parm:');                                   VER00310
+              display (Substr(Rxarg_c256, 1, Rxarg_len));               VER00320
+                Rxarg_ptr = Rxarg_ptr + Storage(Rxarg_struct);          VER00330
+             End;                                                       VER00340
+    /* Test memory allocation */                                        VER00350
+             Entryaddr(Pcrstor_obtain) = Pcrcb_stor_obtain;             VER00360
+             Entryaddr(Pcrstor_release) = Pcrcb_stor_release;           VER00370
+             Pcrcb_local_ptr = Pcrstor_obtain(100000);                  VER00380
+             Display('PCRcb_local_pt value:' ||                         VER00390
+                Binaryvalue(Pcrcb_local_ptr));                          VER00400
+    /* Free it up now....*/                                             VER00410
+             Call Pcrstor_release(Pcrcb_local_ptr);                     VER00420
+    /* Now return some data */                                          VER00430
+             Pcrev_ptr = Pcrcb_rx_ev_ptr;                               VER00440
+    /* The PCREV starts out with 250 bytes of data space */             VER00450
+             Pcrev_data = 'Data returning from PCRTEST';                VER00460
+    /* need more space in eval_block */                                 VER00470
+             Pcrev_newbytes = 500;                                      VER00480
+             Entryaddr(Pcrgetev) = Pcrcb_rx_entry_eval;                 VER00490
+             Call Pcrgetev;                                             VER00500
+             Pcrev_ptr = Pcrcb_rx_ev_ptr;                               VER00510
+             Pcrev_data = 'Data returning from PCRTEST' ||              VER00520
+                 repeat('X',300);                                       VER00530
+             Display('PCRev_ptr value:'|| Binaryvalue(Pcrev_ptr));      VER00540
+             Return;                                                    VER00550
+          End;                                                          VER00560
+                                                                        VER00570
+  /* Now test the IMMED commands... */                                  VER00580
+       If Pcrcb_type = 'IMMC' Then                                      VER00590
+          Do;                      /* Invoked as an IMMEDIATE cmd */    VER00600
+             Display ('in immd code ');                                 VER00610
+             Return;                                                    VER00620
+          End;                                                          VER00630
+       If Pcrcb_type = 'SUBC' Then Do;                                  VER00640
+           Display('Subcommand:' || parm);                              VER00650
+          Return;                                                       VER00660
+          end;                                                          VER00670
+       If Pcrcb_type = 'CMSC' Then Do;                                  VER00680
+              Display('CMS COMMAND STRING ' || Parm);                   VER00690
+       End;                                                             VER00700
+                                                                        VER00710
+    End;                                                                VER00720

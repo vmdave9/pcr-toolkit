@@ -1,0 +1,13 @@
+ /* PLI/CMS/Rexx Extended EvalBlock */                                  PCR00010
+ Declare                                                                PCR00020
+   PCREV_ptr          pointer,                                          PCR00030
+   1 PCREV_struct     based(PCREV_ptr),                                 PCR00040
+    2 PCREV_bytes     fixed bin(31),  /* Current max of DATA */         PCR00050
+    2 PCREV_reserved  fixed bin(31),                                    PCR00060
+    2 PCREV_newbytes  fixed bin(31),  /* for getting a larger EV */     PCR00070
+    2 PCREV_highlen   fixed bin(15),  /* High order byte of length */   PCR00080
+    2 PCREV_data      char(x refer(PCREV_bytes)) varying;               PCR00090
+                                                                        PCR00100
+ /* DO NOT MODIFY _bytes and _reserved      */                          PCR00110
+ /* Length of DATA is 0 upon entry          */                          PCR00120
+ /* Set highlen to -1 if not returning data */                          PCR00130

@@ -1,0 +1,723 @@
+*********************************************************************** PCR00010
+*                                                                       PCR00020
+* To generate the PCR module:                                           PCR00030
+*                                                                       PCR00040
+*   First compile the "dummy" PLI stub routine:                         PCR00050
+*      GLOBAL  TXTLIB PLILIB IBMLIB                                     PCR00060
+*      PLIO PCRPLI (System(MVS)                                         PCR00070
+*   Next build a PCR MACLIB from all of the COPY files,                 PCR00080
+*   Next assemble the PCR file:                                         PCR00090
+*      GLOBAL MACLIB PCR DMSSP CMSLIB                                   PCR00100
+*      HASM PCR   -or- you can use the new High Level Assembler HLASM   PCR00110
+*   Add the following line to the top of the PCR text file to tell      PCR00120
+*     the LOADER where the entry point is:                              PCR00130
+*         ENTRY PCR                                                     PCR00140
+*   Load and generate the module:                                       PCR00150
+*      LOAD PCR (RLDSAVE CLEAR NODUP                                    PCR00160
+*      GENMOD PCR (FROM PCR                                             PCR00170
+*                                                                       PCR00180
+         ENTRY PCR                                                      PCR00190
+PCR      CSECT                                                          PCR00200
+         REGEQU                                                         PCR00210
+         USING    *,R12                                                 PCR00220
+         USING    USERSAVE,R13                                          PCR00230
+         MVC      WK_CTYP,USECTYP                                       PCR00240
+         DROP     R13                                                   PCR00250
+         XR       R15,R15      ;This will default RC to 0               PCR00260
+         STM      R14,R12,12(R13)                                       PCR00270
+         LR       R10,R0       ;Save these Regs                         PCR00280
+         LR       R11,R1       ;Save these Regs                         PCR00290
+*                                                                       PCR00300
+* Load as Nucleus Extension                                             PCR00310
+*                                                                       PCR00320
+         L        R9,MODSTAT                                            PCR00330
+         BR       R9           ;Either NOLMOD or LMOD                   PCR00340
+         DS       0D                                                    PCR00350
+LMODPL   DC       CL8'NUCXLOAD'                                         PCR00360
+LMPNAME  DC       CL8'PCR'                                              PCR00370
+         DC       CL8'('                                                PCR00380
+         DC       CL8'SERVICE'                                          PCR00390
+         DC       CL8'ENDCMD'                                           PCR00400
+         DC       8X'FF'                                                PCR00410
+MODSTAT  DC       A(LMOD)                                               PCR00420
+         DS       0H                                                    PCR00430
+LMOD     EQU      *                                                     PCR00440
+         LA       R1,LMODPL    ;Get parms for Nucxloading               PCR00450
+         MVC      LMPNAME,0(R11)                                        PCR00460
+         SVC      202          ;..                                      PCR00470
+         DC       AL4(1)       ;Check error ourself                     PCR00480
+         LTR      R15,R15      ;Was it good                             PCR00490
+         BNE      FIXLMOD      ;No, must already be an extension        PCR00500
+         LR       R1,R11                                                PCR00510
+         LR       R0,R10                                                PCR00520
+         SVC      202          ;Invoke the now Nucxloaded module        PCR00530
+         DC       AL4(1)                                                PCR00540
+         ST       R15,16(R13)  ;save return                             PCR00550
+         LM       R14,R12,12(R13) ;And leave...                         PCR00560
+         BR       R14                                                   PCR00570
+FIXLMOD  EQU      *                                                     PCR00580
+         LA       R9,NOLMOD                                             PCR00590
+         ST       R9,MODSTAT   ;Now Nucxload will not be done again     PCR00600
+* Define the IMMED commands                                             PCR00610
+         NUCEXT   SET,NAME='PTS',IMMCMD=YES,ENTRY=ENTRY_PTS             PCR00620
+         NUCEXT   SET,NAME='PTE',IMMCMD=YES,ENTRY=ENTRY_PTE             PCR00630
+         NUCEXT   SET,NAME='PHX',IMMCMD=YES,ENTRY=ENTRY_PHX             PCR00640
+* Set work word of PCR ext to point to address of active PCR entry      PCR00650
+         USING    SCBLOCK,R2                                            PCR00660
+         LA       R3,WK_CB_ACTIVE                                       PCR00670
+         DMSEXS   ST,R3,SCBWKWRD                                        PCR00680
+         DROP     R2                                                    PCR00690
+* Load any PLI stuff from loadlibs                                      PCR00700
+         LA       R4,LPLITAB                                            PCR00710
+         LA       R6,=CL8'PLILIB'                                       PCR00720
+LPLI_PASS2 EQU    *                                                     PCR00730
+         CLI      0(R4),X'FF'  ;any to do?                              PCR00740
+         BE       LPLI_END     ;no...                                   PCR00750
+         LA       R1,FD20      ;Clear filedef                           PCR00760
+         SVC      202          ;                                        PCR00770
+         DC       AL4(1)       ;                                        PCR00780
+         LA       R1,FD10      ;filedef the loadlib                     PCR00790
+         MVC      FD10_LOAD,0(R6)                                       PCR00800
+         SVC      202          ;                                        PCR00810
+         DC       AL4(1)       ;                                        PCR00820
+         LA       R1,NL20      ;used for nucxload from loadlib          PCR00830
+LPLI_LOOP EQU     *                                                     PCR00840
+         MVC      NL20_NUCX,0(R4)  ;Move module name                    PCR00850
+         MVC      NL20_MOD,0(R4)  ;Move module name                     PCR00860
+         SVC      202          ;Do the load                             PCR00870
+         DC       AL4(1)       ;                                        PCR00880
+         LA       R4,8(R4)     ;next one                                PCR00890
+         CLI      0(R4),X'FF'  ;Last entry?                             PCR00900
+         BNE      LPLI_LOOP                                             PCR00910
+         LA       R1,FD20      ;Clear filedef                           PCR00920
+         SVC      202          ;                                        PCR00930
+         DC       AL4(1)       ;                                        PCR00940
+LPLI_END EQU      *                                                     PCR00950
+         CLI      0(R6),C'I'   ;Was this IBMLIB?                        PCR00960
+         BE       NOLMOD       ;Yes, last one                           PCR00970
+         LA       R4,LIBMTAB                                            PCR00980
+         LA       R6,=CL8'IBMLIB'                                       PCR00990
+         B        LPLI_PASS2                                            PCR01000
+**                                                                      PCR01010
+NOLMOD   EQU      *                                                     PCR01020
+************************                                                PCR01030
+** See if we are Loading, Droping, or Reseting all                      PCR01040
+*                                                                       PCR01050
+         USING    PARMS,R11                                             PCR01060
+         CLIBEE    WK_CTYP,X'FE',TERMREQ    ;Finis the PLI Environment  PCR01070
+         CLIBEE    WORD1,X'FF',LEAVE        ;Any parms                  PCR01080
+         CLCBE    WORD2,=CL8'LOAD',LOADREQ ;Do LOAD Request             PCR01090
+         CLCBE    WORD2,=CL8'DROP',DROPREQ ;Do DROP Request             PCR01100
+         CLCBE    WORD2,=CL8'RESET',RESETREQ ;Do RESET                  PCR01110
+         CLCBE    WORD2,=CL8'TERM',TERMREQ ;Do TERM                     PCR01120
+*                                                                       PCR01130
+         B        BADCALL                                               PCR01140
+************************                                                PCR01150
+** Load Request                                                         PCR01160
+*                                                                       PCR01170
+LOADREQ  EQU      *                                                     PCR01180
+         MVI      WK_OPT_NOLOAD,C'N'   ;Default options                 PCR01190
+         MVI      WK_OPT_ENDCMD,C'N'   ;                                PCR01200
+*                                                                       PCR01210
+         CLIBEE    WORD3,X'FF',BADCALL                                  PCR01220
+         MVC      WK_NAME,WORD3                                         PCR01230
+         CLIBEE    WORD4,X'FF',BADCALL                                  PCR01240
+         CLCBE    WORD4,=CL8'REXX',L_W4_OK                              PCR01250
+         CLCBE    WORD4,=CL8'SUBC',L_W4_OK                              PCR01260
+         CLCBE    WORD4,=CL8'CMSC',L_W4_OK                              PCR01270
+         CLCBE    WORD4,=CL8'IMMC',L_W4_OK                              PCR01280
+         B        BADCALL                                               PCR01290
+L_W4_OK  EQU      *                                                     PCR01300
+         MVC      WK_TYPE,WORD4                                         PCR01310
+         CLIBEE    WORD5,X'FF',BADCALL                                  PCR01320
+         MVC      WK_NUCXNAME,WORD5                                     PCR01330
+*                                                                       PCR01340
+         MVI      WK_MODNAME,C'='        ;Default the MODNAME           PCR01350
+         XC       WK_LOADLIB,WK_LOADLIB  ;and LOADLIB                   PCR01360
+         LA       R11,WORD6              ;So we can use WORD1           PCR01370
+         CLIBEE    WORD1,C'(',L_OPTS      ;Go do options                PCR01380
+         CLIBEE    WORD1,X'FF',L_DEFAULTS ;Go do defaults               PCR01390
+         MVC      WK_MODNAME,WORD1                                      PCR01400
+         LA       R11,WORD2              ;So we can use WORD1           PCR01410
+         CLIBEE    WORD1,C'(',L_OPTS      ;Go do options                PCR01420
+         CLIBEE    WORD1,X'FF',L_DEFAULTS ;Go do defaults               PCR01430
+         MVC      WK_LOADLIB,WORD7                                      PCR01440
+         LA       R11,WORD2              ;So we can use WORD1           PCR01450
+         CLIBEE    WORD1,C'(',L_OPTS      ;Go do options                PCR01460
+         CLIBEE    WORD1,X'FF',L_DEFAULTS ;Go do defaults               PCR01470
+         B        BADCALL                                               PCR01480
+L_OPTS   EQU     *                                                      PCR01490
+         LA       R11,WORD2              ;So we can use WORD1           PCR01500
+         CLIBEE    WORD1,X'FF',L_DEFAULTS ;Go do defaults               PCR01510
+         LA       R4,WK_OPT_NOLOAD                                      PCR01520
+         CLCBE    WORD1,=CL8'NOLOAD',L_SET_OPT                          PCR01530
+         LA       R4,WK_OPT_ENDCMD                                      PCR01540
+         CLCBE    WORD1,=CL8'ENDCMD',L_SET_OPT                          PCR01550
+         B        BADCALL                                               PCR01560
+L_SET_OPT EQU     *                                                     PCR01570
+         MVI      0(R4),C'Y'                                            PCR01580
+         B        L_OPTS        ;Do all that was specified              PCR01590
+L_DEFAULTS EQU    *                                                     PCR01600
+         DROP     R11                                                   PCR01610
+         CLI      WK_MODNAME,C'='  ;Use same name                       PCR01620
+         BNE      L_D2                                                  PCR01630
+         MVC      WK_MODNAME,WK_NUCXNAME                                PCR01640
+L_D2     EQU      *                                                     PCR01650
+         CLIBEE    WK_TYPE,C'R',L_D3  ;Rexx is okay for ENDCMD          PCR01660
+         CLIBEE    WK_TYPE,C'C',L_D3  ;CMSC is okay for ENDCMD          PCR01670
+         CLIBEE    WK_OPT_ENDCMD,C'Y',BADCALL                           PCR01680
+L_D3     EQU      *                                                     PCR01690
+***************************************************                     PCR01700
+*** Load MODNAME as NUCXNAME (maybe from LOADLIB)                       PCR01710
+***                                                                     PCR01720
+         XR       R15,R15                                               PCR01730
+         MVI      WK_LOADED,C'N'              ;Did not load             PCR01740
+         CLIBEE    WK_OPT_NOLOAD,C'Y',L_DEFINE ;Skip loading?           PCR01750
+*                                                                       PCR01760
+         NUCEXT   QUERY,NAME=WK_NUCXNAME                                PCR01770
+         LTR      R15,R15                                               PCR01780
+         BE       L_DEFINE          ;It's already loaded                PCR01790
+         MVI      WK_LOADED,C'Y'    ;Say loading did take place         PCR01800
+         CLI      WK_LOADLIB,X'00'  ;Is a loadlib there                 PCR01810
+         BNE      L_LOADLIB                                             PCR01820
+L_MODULE EQU     *                                                      PCR01830
+         LA       R1,NL10      ;Get parms for Nucxloading               PCR01840
+         MVC      NL10_NUCX,WK_NUCXNAME                                 PCR01850
+         MVC      NL10_MOD,WK_MODNAME                                   PCR01860
+         SVC      202          ;..                                      PCR01870
+         DC       AL4(1)                                                PCR01880
+         B        L_DEFINE                                              PCR01890
+L_LOADLIB EQU     *                                                     PCR01900
+**       (Issue FILEDEF for LOADLIB)                                    PCR01910
+         LA       R1,FD10                                               PCR01920
+         MVC      FD10_LOAD,WK_LOADLIB                                  PCR01930
+         SVC      202          ;..                                      PCR01940
+         DC       AL4(1)       ;Check error ourself                     PCR01950
+**       (Issue NUCXLOAD MODNAME NUCXNAME PCRDD)                        PCR01960
+         LA       R1,NL20      ;Get parms for Nucxloading               PCR01970
+         MVC      NL20_NUCX,WK_NUCXNAME                                 PCR01980
+         MVC      NL20_MOD,WK_MODNAME                                   PCR01990
+         SVC      202          ;..                                      PCR02000
+         DC       AL4(1)       ;Check error ourself                     PCR02010
+         LR       R5,R15                                                PCR02020
+**       (Issue FILEDEF CLEAR)                                          PCR02030
+         LA       R1,FD20                                               PCR02040
+         SVC      202                                                   PCR02050
+         DC       AL4(1)                                                PCR02060
+         LR       R15,R5                                                PCR02070
+L_DEFINE EQU      *                                                     PCR02080
+         LTR      R15,R15                                               PCR02090
+         BNE      L_ERR_LOAD     ;Could not be loaded                   PCR02100
+***************************************************                     PCR02110
+*** Allocate a PCRCB and set it up                                      PCR02120
+***                                                                     PCR02130
+         LA       R0,PCRCB_BYTES                                        PCR02140
+         CMSSTOR  OBTAIN,DWORDS=(0),ERROR=ERR_MEMORY                    PCR02150
+         LR       R11,R1                                                PCR02160
+         USING    PCRCB,R11                                             PCR02170
+         MVC      CB_LOCAL,PLINULL                                      PCR02180
+         MVC      CB_TYPE,WK_TYPE                                       PCR02190
+         MVC      CB_NAME,WK_NAME                                       PCR02200
+         MVC      CB_NUCXNAME,WK_NUCXNAME                               PCR02210
+         MVC      CB_MODNAME,WK_MODNAME                                 PCR02220
+         MVC      CB_LOADLIB,WK_LOADLIB                                 PCR02230
+         MVC      CB_LOADED,WK_LOADED                                   PCR02240
+         MVC      CB_OPT_ENDCMD,WK_OPT_ENDCMD                           PCR02250
+         MVC      CB_OPT_NOLOAD,WK_OPT_NOLOAD                           PCR02260
+         LA       R2,PCR_ENTRY_EVAL                                     PCR02270
+         ST       R2,CB_RX_ENTRY_EVAL                                   PCR02280
+         LA       R2,PCRSTOR_OBTAIN                                     PCR02290
+         ST       R2,CB_PCRSTOR_OBTAIN                                  PCR02300
+         LA       R2,PCRSTOR_RELEASE                                    PCR02310
+         ST       R2,CB_PCRSTOR_RELEASE                                 PCR02320
+         MVC      CB_NEXT,WK_CB_HEAD                                    PCR02330
+         ST       R11,WK_CB_HEAD                                        PCR02340
+***************************************************                     PCR02350
+*** Define NAME as proper nucleus extension                             PCR02360
+***                                                                     PCR02370
+         CLI      CB_TYPE,C'S'         ;Is it a sub command?            PCR02380
+         BE       DEF_SUB                                               PCR02390
+         XR       R2,R2                ;say NO to IMMED                 PCR02400
+         CLI      CB_TYPE,C'I'         ;Is is an IMMED Command?         PCR02410
+         BNE      DEF_NUC                                               PCR02420
+         LA       R2,1                 ;say YES to IMMED                PCR02430
+DEF_NUC  EQU      *                                                     PCR02440
+         NUCEXT   QUERY,NAME=WK_NAME                                    PCR02450
+         LTR      R15,R15                                               PCR02460
+         BE       L_ERR_DEF                                             PCR02470
+         XR       R4,R4                                                 PCR02480
+         CLI      CB_OPT_ENDCMD,C'Y'  ;Is is a ENDCMD                   PCR02490
+         BNE      DEF_NUC3                                              PCR02500
+         LA       R4,1                                                  PCR02510
+DEF_NUC3 EQU      *                                                     PCR02520
+         NUCEXT   SET,                                                 XPCR02530
+               NAME=WK_NAME,                                           XPCR02540
+               ENTRY=PCR_ENTRY,                                        XPCR02550
+               UWORD=(R11),                                            XPCR02560
+               IMMCMD=(R2),                                            XPCR02570
+               ENDCMD=(R4)                                              PCR02580
+         B        LEAVE                                                 PCR02590
+DEF_SUB  EQU      *                                                     PCR02600
+         SUBCOM   QUERY,NAME=WK_NAME                                    PCR02610
+         LTR      R15,R15                                               PCR02620
+         BE       L_ERR_DEF                                             PCR02630
+         SUBCOM   SET,                                                 XPCR02640
+               NAME=WK_NAME,                                           XPCR02650
+               ENTRY=PCR_ENTRY,                                        XPCR02660
+               UWORD=(R11)                                              PCR02670
+         B        LEAVE                                                 PCR02680
+L_ERR_LOAD EQU    *                                                     PCR02690
+         LINEDIT  TEXT='Could not load module during PCR LOAD'          PCR02700
+         LA       R15,4                                                 PCR02710
+         ST       R15,16(R13)                                           PCR02720
+         B        LEAVE                                                 PCR02730
+L_ERR_DEF  EQU    *                                                     PCR02740
+         LINEDIT  TEXT='Logical name already exist for PCR'             PCR02750
+         LA       R15,4                                                 PCR02760
+         ST       R15,16(R13)                                           PCR02770
+         B        LEAVE                                                 PCR02780
+         DROP     R11                                                   PCR02790
+***************************************************                     PCR02800
+*** TERM request  (Also done at ENDCMD)                                 PCR02810
+***                                                                     PCR02820
+TERMREQ  EQU      *                                                     PCR02830
+         CLC      EP10_ENV,=XL8'0000000000000000'                       PCR02840
+         BE       LEAVE                                                 PCR02850
+         MVC      TP10_ENV,EP10_ENV                                     PCR02860
+         XC       EP10_ENV,EP10_ENV                                     PCR02870
+         LA       R1,TP20_A                                             PCR02880
+         L        R15,=V(PCRPLI)                                        PCR02890
+         L        R15,=V(PLISTART)                                      PCR02900
+         ST       R13,WK_R13                                            PCR02910
+         LA       R13,WK_SAVE2                                          PCR02920
+         BALR     R14,R15                                               PCR02930
+         L        R13,WK_R13               ;restore R13                 PCR02940
+         B        LEAVE                                                 PCR02950
+***************************************************                     PCR02960
+*** Drop request                                                        PCR02970
+***                                                                     PCR02980
+DROPREQ  EQU      *                                                     PCR02990
+         USING    PARMS,R11                                             PCR03000
+         CLI      WORD3,X'FF'    ;Get name parm                         PCR03010
+         BE       BADCALL                                               PCR03020
+         MVC      WK_NAME,WORD3                                         PCR03030
+         DROP     R11                                                   PCR03040
+D_START  EQU      *                                                     PCR03050
+         LA       R9,WK_CB_HEAD                                         PCR03060
+         L        R10,WK_CB_HEAD                                        PCR03070
+         USING    PCRCB,R11                                             PCR03080
+D_LOOP   EQU      *                                                     PCR03090
+         LTR      R11,R10         ;Next/First CB                        PCR03100
+         BNH      D_END                                                 PCR03110
+         L        R10,CB_NEXT     ;Access next one                      PCR03120
+         CLI      WK_NAME,C'*'    ;Are we droping everything?           PCR03130
+         BE       D_DROP                                                PCR03140
+         CLC      WK_NAME,CB_NAME ;Are we droping this one?             PCR03150
+         BE       D_DROP                                                PCR03160
+         LR       R9,R11          ;Now this is the previous one         PCR03170
+         B        D_LOOP                                                PCR03180
+D_DROP   EQU      *                                                     PCR03190
+         CLI      CB_TYPE,C'S'         ;Is is an SUBCOM                 PCR03200
+         BE       DROP_SUB                                              PCR03210
+DROP_NUC EQU      *                                                     PCR03220
+         NUCEXT   CLR,NAME=CB_NAME                                      PCR03230
+         B        DROP_MOD                                              PCR03240
+DROP_SUB EQU      *                                                     PCR03250
+         SUBCOM   CLR,NAME=CB_NAME                                      PCR03260
+DROP_MOD EQU      *                                                     PCR03270
+         CLI      CB_LOADED,C'Y'   ;Did we load a module for this one?  PCR03280
+         BNE      D_LOOP           ;No need to drop - did not laod      PCR03290
+         LA       R1,ND10                                               PCR03300
+         MVC      ND10_NUCX,CB_NUCXNAME                                 PCR03310
+         SVC      202                                                   PCR03320
+         DC       AL4(1)                                                PCR03330
+* unlink CB list                                                        PCR03340
+         ST       R10,0(R9)                                             PCR03350
+* Free the PCRCB                                                        PCR03360
+         LA       R0,PCRCB_BYTES                                        PCR03370
+         CMSSTOR  RELEASE,BYTES=(0),ADDR=(R11),ERROR=ERR_MEMORY         PCR03380
+         B        D_LOOP                                                PCR03390
+D_END    EQU      *                                                     PCR03400
+         B        LEAVE                                                 PCR03410
+***************************************************                     PCR03420
+*** Reset request (Drop all and undefine PTS, PTE, PHX)                 PCR03430
+***                                                                     PCR03440
+RESETREQ EQU      *                                                     PCR03450
+         NUCEXT   CLR,NAME='PTS',ERROR=*                                PCR03460
+         NUCEXT   CLR,NAME='PTE',ERROR=*                                PCR03470
+         NUCEXT   CLR,NAME='PHX',ERROR=*                                PCR03480
+         MVI      WK_NAME,C'*'                                          PCR03490
+         B        D_START                                               PCR03500
+***********************************                                     PCR03510
+**                                                                      PCR03520
+**Leave now (Exit for entry PCR LOAD/DROP/RESET)                        PCR03530
+**                                                                      PCR03540
+LEAVE    EQU      *                                                     PCR03550
+         LM       R14,R12,12(R13)                                       PCR03560
+         BR       R14                                                   PCR03570
+*                                                                       PCR03580
+ERR_MEMORY EQU    *                                                     PCR03590
+         LA       R15,20                                                PCR03600
+         ST       R15,16(R13)                                           PCR03610
+         LINEDIT  TEXT='Memory error in PCR'                            PCR03620
+         B        LEAVE                                                 PCR03630
+BADCALL  EQU      *                                                     PCR03640
+         LA       R15,8                                                 PCR03650
+         ST       R15,16(R13)                                           PCR03660
+         LINEDIT  TEXT='Invalid call to PCR'                            PCR03670
+         B        LEAVE                                                 PCR03680
+DEF_ERROR  EQU    *                                                     PCR03690
+         LA       R15,16                                                PCR03700
+         ST       R15,16(R13)                                           PCR03710
+         LINEDIT  TEXT='Unable to define PCR entry'                     PCR03720
+         B        LEAVE                                                 PCR03730
+         DROP     R12                                                   PCR03740
+***************************************************                     PCR03750
+*** Entry for PTS, PTE, PHX                                             PCR03760
+***                                                                     PCR03770
+ENTRY_PTS EQU     *                                                     PCR03780
+         USING    *,R12                                                 PCR03790
+         L        R3,WK_IFLAG_ADDR                                      PCR03800
+         OI       0(R3),X'80'    ;Turn it on                            PCR03810
+         XR       R15,R15                                               PCR03820
+         BR       R14                                                   PCR03830
+         DROP     R12                                                   PCR03840
+ENTRY_PTE EQU     *                                                     PCR03850
+         USING    *,R12                                                 PCR03860
+         L        R3,WK_IFLAG_ADDR                                      PCR03870
+         NI       0(R3),X'7F'    ;Turn it off                           PCR03880
+         XR       R15,R15                                               PCR03890
+         BR       R14                                                   PCR03900
+         DROP     R12                                                   PCR03910
+ENTRY_PHX EQU     *                                                     PCR03920
+         USING    *,R12                                                 PCR03930
+         L        R3,WK_IFLAG_ADDR                                      PCR03940
+         OI       0(R3),X'40'    ;Turn it on                            PCR03950
+         XR       R15,R15                                               PCR03960
+         BR       R14                                                   PCR03970
+         DROP     R12                                                   PCR03980
+******************************************************                  PCR03990
+*** Entry for getting new EVALBLOCK  (Called from PLI)                  PCR04000
+***                                                                     PCR04010
+PCR_ENTRY_EVAL EQU *                                                    PCR04020
+         STM      R14,R12,12(R13)                                       PCR04030
+         LR       R9,R15                                                PCR04040
+         XR       R15,R15                                               PCR04050
+         ST       R15,16(R13)                                           PCR04060
+         USING    PCR_ENTRY_EVAL,R9                                     PCR04070
+         L        R11,WK_CB_ACTIVE                                      PCR04080
+         USING    PCRCB,R11                                             PCR04090
+         L        R10,CB_RX_EVALBLOK                                    PCR04100
+         USING    PCREV,R10                                             PCR04110
+         L        R2,EV_NEWBYTES                                        PCR04120
+         L        R8,EV_BYTES                                           PCR04130
+         LA       R3,16(R2)       ;Include fixed part of EV             PCR04140
+         LA       R8,16(R8)                                             PCR04150
+         CMSSTOR  OBTAIN,BYTES=(R3),ERROR=PCR_EE_LEAVE                  PCR04160
+         L        R7,EV_USED      ;Get used amount                      PCR04170
+         ST       R2,EV_BYTES     ;save bytes                           PCR04180
+         LR       R5,R2           ;in here too for copy                 PCR04190
+         LA       R6,EV_DATA      ;get old ones address                 PCR04200
+         LR       R3,R10          ;keep to free later                   PCR04210
+         LR       R10,R1          ;Now use new one                      PCR04220
+         ST       R1,CB_RX_EVALBLOK                                     PCR04230
+         LA       R4,EV_DATA                                            PCR04240
+         MVCL     R4,R6                                                 PCR04250
+         MVC      0(16,R1),0(R3)   ;Copy old fixed part                 PCR04260
+         CMSSTOR  RELEASE,ADDR=(R3),BYTES=(R8),ERROR=PCR_EE_LEAVE       PCR04270
+         DROP     R9                                                    PCR04280
+         DROP     R10                                                   PCR04290
+         DROP     R11                                                   PCR04300
+*                                                                       PCR04310
+PCR_EE_LEAVE EQU  *                                                     PCR04320
+         LM       R14,R12,12(R13)                                       PCR04330
+         BR       R14                                                   PCR04340
+******************************************************                  PCR04350
+*** Entry for getting storage PCRSTOR_OBTAIN (PLI Entry)                PCR04360
+***                                                                     PCR04370
+PCRSTOR_OBTAIN EQU *                                                    PCR04380
+         STM      R14,R12,12(R13)                                       PCR04390
+         LR       R9,R15                                                PCR04400
+         XR       R15,R15          ;Default to good RC                  PCR04410
+         ST       R15,16(R13)                                           PCR04420
+         USING    PCRSTOR_OBTAIN,R9                                     PCR04430
+         L        R2,0(R1)         ;addr of Number of bytes to get      PCR04440
+         L        R2,0(R2)         ;Number of bytes to get              PCR04450
+         L        R3,4(R1)         ;Where to put value                  PCR04460
+         LA       R2,8(R2)         ;Get eight more bytes                PCR04470
+         CMSSTOR  OBTAIN,BYTES=(R2),ERROR=PCRSTOR_OBTAIN_ERROR          PCR04480
+         ST       R2,0(R1)         ;Save the size                       PCR04490
+         LA       R1,8(R1)         ;Skip passed header                  PCR04500
+         ST       R1,0(R3)         ;Tell them the address               PCR04510
+*                                                                       PCR04520
+PCRSTOR_OBTAIN_LEAVE EQU *                                              PCR04530
+         LM       R14,R12,12(R13)                                       PCR04540
+         BR       R14                                                   PCR04550
+PCRSTOR_OBTAIN_ERROR EQU *                                              PCR04560
+         MVC      0(4,R3),PLINULL                                       PCR04570
+         ST       R15,16(R13)                                           PCR04580
+         B        PCRSTOR_OBTAIN_LEAVE                                  PCR04590
+         DROP     R9                                                    PCR04600
+******************************************************                  PCR04610
+*** Entry for freeing storage PCRSTOR_RELEASE (PLI Entry)               PCR04620
+***                                                                     PCR04630
+PCRSTOR_RELEASE EQU *                                                   PCR04640
+         STM      R14,R12,12(R13)                                       PCR04650
+         LR       R9,R15                                                PCR04660
+         USING    PCRSTOR_RELEASE,R9                                    PCR04670
+         L        R2,0(R1)         ;addr of address to free             PCR04680
+         L        R2,0(R2)         ;Address to free                     PCR04690
+         LA       R3,8             ;size of header                      PCR04700
+         SR       R2,R3            ;Real address                        PCR04710
+         L        R3,0(R2)         ;Bytes to free                       PCR04720
+         CMSSTOR  RELEASE,BYTES=(R3),ADDR=(R2)                          PCR04730
+         ST       R15,16(R13)      ;Return code                         PCR04740
+         LM       R14,R12,12(R13)                                       PCR04750
+         BR       R14                                                   PCR04760
+         DROP     R9                                                    PCR04770
+******************************************************                  PCR04780
+*** Entry for all PLI nucxexts                                          PCR04790
+***                                                                     PCR04800
+PCR_ENTRY EQU     *                                                     PCR04810
+         USING    *,R12                                                 PCR04820
+         USING    USERSAVE,R13                                          PCR04830
+         MVC      WK_CTYP,USECTYP                                       PCR04840
+         DROP     R13                                                   PCR04850
+         STM      R14,R12,12(R13)                                       PCR04860
+*                                                                       PCR04870
+         USING    SCBLOCK,R2                                            PCR04880
+         L        R11,SCBWKWRD        ;access this PCRCB                PCR04890
+         DROP     R2                                                    PCR04900
+         USING    PCRCB,R11                                             PCR04910
+*                                                                       PCR04920
+         L        R15,=F'-2'          ;is it an invalid recursion       PCR04930
+         LT       R10,WK_CB_ACTIVE    ;                                 PCR04940
+         BH       PE_LEAVE_HURRY      ;                                 PCR04950
+         ST       R11,WK_CB_ACTIVE    ;Now this one is active           PCR04960
+*                                                                       PCR04970
+         LR       R10,R0              ;Access R0                        PCR04980
+         LA       R2,CB_IFLAG         ;Copy the Immed Flag byte         PCR04990
+         MVC      CB_IFLAG,WK_IFLAG   ;                                 PCR05000
+         ST       R2,WK_IFLAG_ADDR    ;                                 PCR05010
+         NI       0(R2),X'BF'         ;Turn off HX                      PCR05020
+         MVC      CB_GLOBAL,WK_GLOBAL ;Copy the global value            PCR05030
+*                                                                       PCR05040
+         MVC      CB_RX_ARGLIST,PLINULL      ;Incase there are none     PCR05050
+         MVI      CB_RX_TYPE,X'40'           ;Incase there are none     PCR05060
+         XC       CB_RX_ARGCNT,CB_RX_ARGCNT  ;.                         PCR05070
+         MVC      CB_RX_EVALBLOK,PLINULL                                PCR05080
+         XC       WK_EVALADDR,WK_EVALADDR                               PCR05090
+         ST       R11,EP10_P1DATA        ;pass CB                       PCR05100
+         MVC      CB_ARGPTR,PLINULL     ;                               PCR05110
+         XC       CB_ARGLEN,CB_ARGLEN   ;                               PCR05120
+         CLI      CB_TYPE,C'I'        ;Immed call                       PCR05130
+         BE       PE_NO_ARGS                                            PCR05140
+         L        R4,4(R10)           ;what was passed, Begin           PCR05150
+         L        R3,8(R10)           ;what was passed, end             PCR05160
+         SR       R3,R4               ;length                           PCR05170
+         ST       R4,CB_ARGPTR   ;Save actual address                   PCR05180
+         ST       R3,CB_ARGLEN   ;and length                            PCR05190
+PE_NO_ARGS EQU    *                                                     PCR05200
+         CLI      WK_CTYP,X'05'          ;Is EPLIST available (REXX)    PCR05210
+         BE       PE_REXXCALL                                           PCR05220
+         MVC      CB_SPEC_TYPE,CB_TYPE                                  PCR05230
+         CLI      WK_CTYP,X'FE'      ;Is it ENDCMD?                     PCR05240
+         BNE      PE_CALLIT                                             PCR05250
+         MVI      CB_SPEC_TYPE,C'E'  ;Say its a ENDCMD  call            PCR05260
+         B        PE_CALLIT                                             PCR05270
+PE_REXXCALL EQU   *                                                     PCR05280
+         MVI      CB_SPEC_TYPE,C'R'                                     PCR05290
+         MVI      CB_RX_TYPE,C'F'          ;Say function call           PCR05300
+         LTR      R10,R10                  ;Sis it function             PCR05310
+         BNL      PE_RC_FUN                                             PCR05320
+         MVI      CB_RX_TYPE,C'S'          ;Say subroutine call         PCR05330
+PE_RC_FUN EQU     *                                                     PCR05340
+         XR       R5,R5                    ;No args                     PCR05350
+         LT       R4,16(R10)               ;Access ARGLIST              PCR05360
+         BNH      PE_RC_NOARG                                           PCR05370
+         ST       R4,CB_RX_ARGLIST                                      PCR05380
+PE_RC_LOOP EQU    *                                                     PCR05390
+         CLC      0(4,R4),=F'-1'         ;Is this one last?             PCR05400
+         BE       PE_RC_NOARG                                           PCR05410
+         LA       R5,1(R5)                                              PCR05420
+         LA       R4,8(R4)                                              PCR05430
+         B        PE_RC_LOOP                                            PCR05440
+PE_RC_NOARG EQU   *                                                     PCR05450
+         ST       R5,CB_RX_ARGCNT         ;Tell them how many           PCR05460
+         MVC      WK_EVALADDR,20(R10)     ;Where to put eval            PCR05470
+         LA       R0,266                  ;Eval block for 250 bytes     PCR05480
+         CMSSTOR  OBTAIN,BYTES=(R0),ERROR=PE_NO_EVAL                    PCR05490
+         ST       R1,CB_RX_EVALBLOK                                     PCR05500
+         USING    PCREV,R1                                              PCR05510
+         MVC      EV_BYTES,=F'250'                                      PCR05520
+         MVC      EV_NEWBYTES,=F'250'                                   PCR05530
+         XC       EV_USED,EV_USED                                       PCR05540
+         DROP     R1                                                    PCR05550
+PE_CALLIT   EQU   *                                                     PCR05560
+         NUCEXT   QUERY,NAME=CB_NUCXNAME,ERROR=PE_NOT_FOUND             PCR05570
+         USING    SCBLOCK,R1                                            PCR05580
+         L        R15,SCBENTR                                           PCR05590
+         DROP     R1                                                    PCR05600
+         LA       R1,EP20_A                                             PCR05610
+         LR       R0,R10          ;In case they are not system(MVS)     PCR05620
+         ST       R13,WK_R13                                            PCR05630
+         LA       R13,WK_SAVE2                                          PCR05640
+         BALR     R14,R15                  ;Make PLI Call               PCR05650
+         L        R13,WK_R13               ;restore R13                 PCR05660
+         LT       R2,WK_EVALADDR           ;Do we have a Rexx EVALBLOK  PCR05670
+         BNH      PE_LEAVE                 ;No, leave                   PCR05680
+         L        R3,CB_RX_EVALBLOK        ;Here's the evalblok         PCR05690
+         USING    PCREV,R3                 ;access it                   PCR05700
+         LT       R5,EV_USED               ;Any data to return          PCR05710
+         BL       PE_NO_RETEVAL            ;No, free it                 PCR05720
+         LTR      R15,R15                  ;Any data to return          PCR05730
+         BNE      PE_NO_RETEVAL            ;No, free it                 PCR05740
+         L        R4,EV_BYTES              ;clean up eval blok          PCR05750
+         LA       R4,23(R4)                ;16 for fixed part + 7 round PCR05760
+         SRL      R4,3                     ;Make DWs                    PCR05770
+         XC       0(16,R3),0(R3)           ;zero out fixed part         PCR05780
+         ST       R4,EV_DWORDS                                          PCR05790
+         ST       R5,EV_NEWBYTES           ;Defferent location          PCR05800
+         ST       R3,0(R2)                 ;and tell rexx about it      PCR05810
+         B        PE_LEAVE                                              PCR05820
+PE_NO_RETEVAL EQU *                                                     PCR05830
+         LA       R5,16(R5)                                             PCR05840
+         LR       R6,R15                                                PCR05850
+         CMSSTOR  RELEASE,BYTES=(R5),ADDR=(R3)                          PCR05860
+         LR       R15,R6                                                PCR05870
+         DROP     R3                                                    PCR05880
+*                                                                       PCR05890
+PE_LEAVE EQU      *                                                     PCR05900
+         LA       R2,WK_IFLAG         ;Copy the Immed Flag byte         PCR05910
+         MVC      WK_IFLAG,CB_IFLAG   ;                                 PCR05920
+         ST       R2,WK_IFLAG_ADDR    ;                                 PCR05930
+         MVC      WK_GLOBAL,CB_GLOBAL ;save the global value            PCR05940
+         XC       WK_CB_ACTIVE,WK_CB_ACTIVE  ;None active now           PCR05950
+PE_LEAVE_HURRY EQU      *                                               PCR05960
+         ST       R15,16(R13)                                           PCR05970
+         LM       R14,R12,12(R13)                                       PCR05980
+         BR       R14                                                   PCR05990
+*                                                                       PCR06000
+PE_NOT_FOUND EQU  *                                                     PCR06010
+         L        R15,=F'-3'                                            PCR06020
+         B        PE_LEAVE                                              PCR06030
+*                                                                       PCR06040
+PE_NO_EVAL   EQU  *                                                     PCR06050
+         L        R15,=F'-4'                                            PCR06060
+         B        PE_LEAVE                                              PCR06070
+*                                                                       PCR06080
+         DROP     R11                                                   PCR06090
+         DROP     R12                                                   PCR06100
+**********************************************                          PCR06110
+**********************************************                          PCR06120
+**                                                                      PCR06130
+** LCMS/PLI Table - Modules to load from IBMLIB/PLILIB on first call    PCR06140
+**                                                                      PCR06150
+         DS       0D                                                    PCR06160
+LPLITAB  EQU      *                                                     PCR06170
+         DC       CL8'IBMBPITA'                                         PCR06180
+         DC       CL8'IBMBPPL'                                          PCR06190
+*        DC       CL8'MODULE' etc., etc.......                          PCR06200
+         DC       8X'FF'                                                PCR06210
+LIBMTAB  EQU      *                                                     PCR06220
+         DC       CL8'IBMBLIIA'                                         PCR06230
+         DC       CL8'IBMBPCL'                                          PCR06240
+*        DC       CL8'MODULE'  etc., etc.....                           PCR06250
+         DC       8X'FF'                                                PCR06260
+**********************************************                          PCR06270
+         DS       0D                                                    PCR06280
+*                                                                       PCR06290
+EP10     DC       F'20'                                                 PCR06300
+EP10_ENV DS       0CL8                                                  PCR06310
+         DC       F'0'                                                  PCR06320
+         DC       F'0'                                                  PCR06330
+         DC       A(EP10_PARM1)                                         PCR06340
+         DC       F'0'                                                  PCR06350
+EP10_PARM1 DC     A(X'80000000'+EP10_P1DATA)                            PCR06360
+EP10_P1DATA DS    F                                                     PCR06370
+*                                                                       PCR06380
+         DS       0D                                                    PCR06390
+EP20_A   DC       A(X'80000000'+EP20)                                   PCR06400
+EP20     DC       H'16'                                                 PCR06410
+         DC       H'0'                                                  PCR06420
+         DC       CL8'CALL'                                             PCR06430
+         DC       A(EP10)                                               PCR06440
+*                                                                       PCR06450
+TP10     DC       F'20'                                                 PCR06460
+TP10_ENV DS       0CL8                                                  PCR06470
+         DC       F'0'                                                  PCR06480
+         DC       F'0'                                                  PCR06490
+         DC       F'0'                                                  PCR06500
+         DC       F'0'                                                  PCR06510
+*                                                                       PCR06520
+         DS       0D                                                    PCR06530
+TP20_A   DC       A(X'80000000'+TP20)                                   PCR06540
+TP20     DC       H'16'                                                 PCR06550
+         DC       H'0'                                                  PCR06560
+         DC       CL8'TERM'                                             PCR06570
+         DC       A(TP10)                                               PCR06580
+*                                                                       PCR06590
+ND10     DC       CL8'NUCXDROP'                                         PCR06600
+ND10_NUCX DS      CL8                                                   PCR06610
+ND10_FF  DC       8X'FF'                                                PCR06620
+*                                                                       PCR06630
+NL10     DC       CL8'NUCXLOAD'                                         PCR06640
+NL10_NUCX DS      CL8                                                   PCR06650
+NL10_MOD  DS      CL8                                                   PCR06660
+NL10_FF  DC       8X'FF'                                                PCR06670
+*                                                                       PCR06680
+NL20     DC       CL8'NUCXLOAD'                                         PCR06690
+NL20_NUCX DS      CL8                                                   PCR06700
+NL20_MOD  DS      CL8                                                   PCR06710
+         DC       CL8'PCRDD'                                            PCR06720
+NL20_FF  DC       8X'FF'                                                PCR06730
+*                                                                       PCR06740
+FD10     DC       CL8'FILEDEF'                                          PCR06750
+         DC       CL8'PCRDD'                                            PCR06760
+         DC       CL8'DISK'                                             PCR06770
+FD10_LOAD DS      CL8                                                   PCR06780
+         DC       CL8'LOADLIB'                                          PCR06790
+         DC       CL8'*'                                                PCR06800
+         DC       CL8'('                                                PCR06810
+         DC       CL8'PERM'                                             PCR06820
+FD10_FF  DC       8X'FF'                                                PCR06830
+*                                                                       PCR06840
+FD20     DC       CL8'FILEDEF'                                          PCR06850
+FD20_DDNAME DC    CL8'PCRDD'                                            PCR06860
+         DC       CL8'CLEAR'                                            PCR06870
+FD20_FF  DC       8X'FF'                                                PCR06880
+*                                                                       PCR06890
+PLINULL  DC       X'00000000'                                           PCR06900
+*************************                                               PCR06910
+* Work data                                                             PCR06920
+WK_SAVE2      DS  20F                                                   PCR06930
+WK_NAME       DS  CL8     ;Name of service (logical name)               PCR06940
+WK_TYPE       DS  CL4     ;The type - REXX, IMMC, CMSC, SUBC            PCR06950
+WK_NUCXNAME   DS  CL8     ;Name that PLI module is loaded               PCR06960
+WK_MODNAME    DS  CL8     ;PLI Module name                              PCR06970
+WK_LOADLIB    DS  CL8     ;From what loadlib (or NOLOAD)                PCR06980
+WK_CB_HEAD    DC  A(0)    ;Start of list of PCRCBs                      PCR06990
+WK_GLOBAL     DC  X'00000000'  ;Common Global value for all PLIs        PCR07000
+WK_IFLAG_ADDR DC  A(WK_IFLAG)       ;Address of IFLAG                   PCR07010
+WK_CB_ACTIVE  DC  A(0)    ;The active PCRCB or 0 if none active         PCR07020
+WK_R13        DS  A       ;So we can save R13                           PCR07030
+WK_EVALADDR   DS  A       ;Where to put the evalblok (or 0)             PCR07040
+WK_IFLAG      DC  XL1'00' ;common PTS, PTE and PHX flag byte            PCR07050
+WK_LOADED     DS  CL1     ;Y/N Did NUCXLOAD occur                       PCR07060
+WK_OPT_NOLOAD DS  CL1     ;Y/N was this option specified                PCR07070
+WK_OPT_ENDCMD DS  CL1     ;Y/N was this option specified                PCR07080
+WK_CTYP        DS CL1     ;The call type from USERSAVE                  PCR07090
+         LTORG                                                          PCR07100
+PARMS    DSECT                                                          PCR07110
+WORD1    DS       CL8                                                   PCR07120
+WORD2    DS       CL8                                                   PCR07130
+WORD3    DS       CL8                                                   PCR07140
+WORD4    DS       CL8                                                   PCR07150
+WORD5    DS       CL8                                                   PCR07160
+WORD6    DS       CL8                                                   PCR07170
+WORD7    DS       CL8                                                   PCR07180
+         PCRCBA                                                         PCR07190
+         PCREVA                                                         PCR07200
+         SCBLOCK                                                        PCR07210
+         USERSAVE                                                       PCR07220
+         END                                                            PCR07230

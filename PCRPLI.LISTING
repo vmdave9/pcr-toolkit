@@ -1,0 +1,7 @@
+15688-235 IBM PL/I for MVS & VM          Ver 1 Rel 1 Mod 1                              26 MAR 04   10:25:31     PAGE   1
+15688-235 IBM PL/I for MVS & VM          pcrpli: procedure options(main noexecops) reorder;                      PAGE   2
+-NO MESSAGES PRODUCED FOR THIS COMPILATION
+-COMPILE TIME    0.00 MINS        SPILL FILE:     0 RECORDS, SIZE  4051
+-NUMBER OF TEMPORARY VARIABLES USED:     2.  NUMBER AVAILABLE: 65533   
+-END OF COMPILATION OF PCRPLI                                          
+          

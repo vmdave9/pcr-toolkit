@@ -1,0 +1,30 @@
+         MACRO                                                          CLC00010
+&LBL     CLCBE    &DATA1,&DATA2,&GO                                     CLC00020
+&LBL     CLC      &DATA1,&DATA2                                         CLC00030
+         BE       &GO                                                   CLC00040
+         MEND                                                           CLC00050
+         MACRO                                                          DRE00010
+         DREGS                                                          DRE00020
+*                                                                       DRE00030
+         STM       8,9,DR0&SYSNDX                                       DRE00040
+         LA        8,DR5&SYSNDX                                         DRE00050
+         LA        9,DR6&SYSNDX                                         DRE00060
+         DIAG      8,9,X'08'                                            DRE00070
+         LM        8,9,DR0&SYSNDX                                       DRE00080
+         STM       4,5,DR0&SYSNDX                                       DRE00090
+         LA        4,DR7&SYSNDX                                         DRE00100
+         LA        5,DR8&SYSNDX                                         DRE00110
+         DIAG      4,5,X'08'                                            DRE00120
+         LM        4,5,DR0&SYSNDX                                       DRE00130
+         B         DR9&SYSNDX                                           DRE00140
+*                                                                       DRE00150
+DR0&SYSNDX  DS        2F                                                DRE00160
+DR5&SYSNDX  EQU       *                                                 DRE00170
+         DC        C'DISPLAY G0-7'                                      DRE00180
+DR6&SYSNDX  EQU       *-DR5&SYSNDX                                      DRE00190
+DR7&SYSNDX  EQU       *                                                 DRE00200
+         DC        C'DISPLAY G8-15'                                     DRE00210
+DR8&SYSNDX  EQU       *-DR7&SYSNDX                                      DRE00220
+         DS        0D                                                   DRE00230
+DR9&SYSNDX  EQU       *                                                 DRE00240
+*                                                                       DRE00250

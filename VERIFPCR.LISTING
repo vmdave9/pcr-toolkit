@@ -1,0 +1,502 @@
+15688-235 IBM PL/I for MVS & VM          Ver 1 Rel 1 Mod 1                              11 JUNE 20  08:00:57     PAGE   1
+-OPTIONS SPECIFIED
+0*Process Inc, Source, Stmt, Gostmt, Langlvl(Sprog);                     VER00010
+0*Process Margins(2, 72),List;                                           VER00020
+0*Process System(CMS);                                                   VER00030
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE   2
+-                    SOURCE LISTING
+-    STMT                                                                                                                
+0         
+        1  Verpcr:                                                                VER00040                               
+              Procedure Options(Main Noexecops) Reorder;                          VER00050                               
+              /* Verify the installation of the PCR package */                    VER00060                               
+              /*                                            */                    VER00070                               
+              /* To generate:                               */                    VER00080                               
+              /*  1) compile:                               */                    VER00090                               
+              /*     GL MACLIB PCR                          */                    VER00100                               
+              /*     PLI  VERIFPCR                          */                    VER00110                               
+              /*  2) load:                                  */                    VER00120                               
+              /*     GL TXTLIB sceelked                     */                    VER00130                               
+              /*     LOAD VERIFPCR (RLDSAVE                 */                    VER00140                               
+              /*  3) gen:                                   */                    VER00150                               
+              /*     GENMOD VERIFPCR (FROM ceestart         */                    VER00160                               
+                                                                                  VER00170                               
+           /*BEGIN %INCLUDE SYSLIB  (PCRCBP  )***********************************/VER00180                               
+           /* PLI/CMS/Rexx Control Block */                                       PCR00010                               
+        2  Declare                                                                PCR00020                               
+             PCRCB_ptr              pointer,                                      PCR00030                               
+             PCRCB_arg_c256         char(256) based(PCRCB_arg_ptr),               PCR00040                               
+             PCRCB_arg_c32767       char(32767) based(PCRCB_arg_ptr),             PCR00050                               
+             1 PCRCB_struct         based(PCRCB_ptr),                             PCR00060                               
+              2 PCRCB_reserved      pointer,                                      PCR00070                               
+              2 PCRCB_global_ptr    pointer,  /* STATIC to ALL PLI programs */    PCR00080                               
+              2 PCRCB_local_ptr     pointer,  /* STATIC for this PLI program */   PCR00090                               
+              2 PCRCB_arg_ptr       pointer,  /* Points to Argstring */           PCR00100                               
+              2 PCRCB_arg_len       fixed bin(31), /*len of Argstring */          PCR00110                               
+              2 PCRCB_type          char(4),  /* IMMC, SUBC, CMSC, REXX */        PCR00120                               
+              2 PCRCB_name          char(8),  /* Name of PCR entry */             PCR00130                               
+              2 PCRCB_nucxname      char(8),  /* Nucname of PLI program */        PCR00140                               
+              2 PCRCB_modname       char(8),  /* Module name of PLI program */    PCR00150                               
+              2 PCRCB_loadlib       char(8),  /* Loadlib that PLI came from */    PCR00160                               
+              2 PCRCB_iflag_t       bit(1),   /* PTS IMMED is active (PTE off) */ PCR00170                               
+              2 PCRCB_iflag_hx      bit(1),   /* PHX IMMED is active */           PCR00180                               
+              2 PCRCB_iflag_dummy   bit(6),   /* more bit in IFLAG   */           PCR00190                               
+              2 PCRCB_OPT_endcmd    char(1),  /* Y/N ENDCMD  options specified */ PCR00200                               
+              2 PCRCB_OPT_noload    char(1),  /* Y/N NOLOAD  options specified */ PCR00210                               
+              2 PCRCB_loaded        char(1),  /* Y/N A PLI Module was loaded   */ PCR00220                               
+              2 PCRCB_spec_type     char(1),  /* blank, or E for Endcmd */        PCR00230                               
+              2 PCRCB_reserved2     char(2),                                      PCR00240                               
+               /* The RX fields are used only if called as Rexx Fun or Sub */     PCR00250                               
+              2 PCRCB_RX_type       char(1),  /* Fun or Sub */                    PCR00260                               
+              2 PCRCB_RX_arglist    pointer,  /* Pointer to arguments */          PCR00270                               
+              2 PCRCB_RX_argcnt     fixed bin(31), /* Number of Arguments */      PCR00280                               
+              2 PCRCB_RX_ev_ptr     pointer,  /* Pointer to PCREV */              PCR00290                               
+              2 PCRCB_RX_entry_eval pointer,  /* routine to get more EV space */  PCR00300                               
+              2 PCRCB_STOR_OBTAIN   pointer,  /* routine to get memory */         PCR00310                               
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE   3
+-    STMT                                                                                    
+-             2 PCRCB_STOR_RELEASE  pointer;  /* routine to free memory */        PCR00320                               
+                                                                                  PCR00330                               
+           /* For accessing Rexx Arguments */                                     PCR00340                               
+        3  Declare                                                                PCR00350                               
+             RXARG_ptr          pointer,  /* PCRCB_RX_ARGLIST */                  PCR00360                               
+             RXARG_c1           char(1)     based(RXARG_addr),                    PCR00370                               
+             RXARG_c32767       char(32767) based(RXARG_addr),                    PCR00380                               
+             RXARG_c256         char(256)   based(RXARG_addr),                    PCR00390                               
+             1 RXARG_struct     based(RXARG_ptr),                                 PCR00400                               
+              2 RXARG_addr      pointer,       /* Pointer to string */            PCR00410                               
+              2 RXARG_len       fixed bin(31); /* Length of string */             PCR00420                               
+                                                                                  PCR00430                               
+           /* Befor calling routines within PCRCB, You must do the following */   PCR00440                               
+           /*    ENTRYADDR(PCRGETEV)        = PCRCB_RX_entry_eval */              PCR00450                               
+           /*    ENTRYADDR(PCRSTOR_OBTAIN)  = PCRCB_STOR_OBTAIN   */              PCR00460                               
+           /*    ENTRYADDR(PCRSTOR_RELEASE) = PCRCB_STOR_RELEASE  */              PCR00470                               
+        4  Declare                                                                PCR00480                               
+             PCRGETC            entry(*) options(INTER RETCODE ASSEMBLER),        PCR00490                               
+             PCRGETEV           variable entry,                                   PCR00500                               
+             PCRSTOR_OBTAIN     variable entry(fixed bin(31)) returns(pointer),   PCR00510                               
+             PCRSTOR_RELEASE    variable entry(pointer);                          PCR00520                               
+           /*END   %INCLUDE SYSLIB  (PCRCBP  )***********************************/VER00180                               
+           /*BEGIN %INCLUDE SYSLIB  (PCREVP  )***********************************/VER00190                               
+           /* PLI/CMS/Rexx Extended EvalBlock */                                  PCR00010                               
+        5  Declare                                                                PCR00020                               
+             PCREV_ptr          pointer,                                          PCR00030                               
+             1 PCREV_struct     based(PCREV_ptr),                                 PCR00040                               
+              2 PCREV_bytes     fixed bin(31),  /* Current max of DATA */         PCR00050                               
+              2 PCREV_reserved  fixed bin(31),                                    PCR00060                               
+              2 PCREV_newbytes  fixed bin(31),  /* for getting a larger EV */     PCR00070                               
+              2 PCREV_highlen   fixed bin(15),  /* High order byte of length */   PCR00080                               
+              2 PCREV_data      char(x refer(PCREV_bytes)) varying;               PCR00090                               
+                                                                                  PCR00100                               
+           /* DO NOT MODIFY _bytes and _reserved      */                          PCR00110                               
+           /* Length of DATA is 0 upon entry          */                          PCR00120                               
+           /* Set highlen to -1 if not returning data */                          PCR00130                               
+           /*END   %INCLUDE SYSLIB  (PCREVP  )***********************************/VER00190                               
+        6        Dcl                                                              VER00200                               
+                    Parm                Char(300) Varying;                        VER00210                               
+        7        call PCRGETC(PCRCB_ptr);                                         VER00220                               
+        8        parm = SUBSTR(PCRCB_arg_c256,1,PCRCB_arg_len);                   VER00230                               
+        9        display(parm);                                                   VER00240                               
+                                                                                  VER00250                               
+            /* If called as a Rexx Function or Subroutine, print parms */         VER00260                               
+       10        If Pcrcb_type = 'REXX' Then                                      VER00270                               
+                    Do;                                                           VER00280                               
+       11              Rxarg_ptr = Pcrcb_rx_arglist;                              VER00290                               
+       12              Do K = 1 To Pcrcb_rx_argcnt;                               VER00300                               
+       13               display ('Next Parm:');                                   VER00310                               
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE   4
+-    STMT                                                                                    
+-      14               display (Substr(Rxarg_c256, 1, Rxarg_len));               VER00320                               
+       15                 Rxarg_ptr = Rxarg_ptr + Storage(Rxarg_struct);          VER00330                               
+       16              End;                                                       VER00340                               
+              /* Test memory allocation */                                        VER00350                               
+       17              Entryaddr(Pcrstor_obtain) = Pcrcb_stor_obtain;             VER00360                               
+       18              Entryaddr(Pcrstor_release) = Pcrcb_stor_release;           VER00370                               
+       19              Pcrcb_local_ptr = Pcrstor_obtain(100000);                  VER00380                               
+       20              Display('PCRcb_local_pt value:' ||                         VER00390                               
+                          Binaryvalue(Pcrcb_local_ptr));                          VER00400                               
+              /* Free it up now....*/                                             VER00410                               
+       21              Call Pcrstor_release(Pcrcb_local_ptr);                     VER00420                               
+              /* Now return some data */                                          VER00430                               
+       22              Pcrev_ptr = Pcrcb_rx_ev_ptr;                               VER00440                               
+              /* The PCREV starts out with 250 bytes of data space */             VER00450                               
+       23              Pcrev_data = 'Data returning from PCRTEST';                VER00460                               
+              /* need more space in eval_block */                                 VER00470                               
+       24              Pcrev_newbytes = 500;                                      VER00480                               
+       25              Entryaddr(Pcrgetev) = Pcrcb_rx_entry_eval;                 VER00490                               
+       26              Call Pcrgetev;                                             VER00500                               
+       27              Pcrev_ptr = Pcrcb_rx_ev_ptr;                               VER00510                               
+       28              Pcrev_data = 'Data returning from PCRTEST' ||              VER00520                               
+                           repeat('X',300);                                       VER00530                               
+       29              Display('PCRev_ptr value:'|| Binaryvalue(Pcrev_ptr));      VER00540                               
+       30              Return;                                                    VER00550                               
+       31           End;                                                          VER00560                               
+                                                                                  VER00570                               
+            /* Now test the IMMED commands... */                                  VER00580                               
+       32        If Pcrcb_type = 'IMMC' Then                                      VER00590                               
+                    Do;                      /* Invoked as an IMMEDIATE cmd */    VER00600                               
+       33              Display ('in immd code ');                                 VER00610                               
+       34              Return;                                                    VER00620                               
+       35           End;                                                          VER00630                               
+       36        If Pcrcb_type = 'SUBC' Then Do;                                  VER00640                               
+       37            Display('Subcommand:' || parm);                              VER00650                               
+       38           Return;                                                       VER00660                               
+       39           end;                                                          VER00670                               
+       40        If Pcrcb_type = 'CMSC' Then Do;                                  VER00680                               
+       41               Display('CMS COMMAND STRING ' || Parm);                   VER00690                               
+       42        End;                                                             VER00700                               
+                                                                                  VER00710                               
+       43     End;                                                                VER00720                               
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE   5
+-  OBJECT LISTING                                            00009A                            DC    AL2(1)              
+                                                             00009C  4040                      DC    X'4040'             
+                                                             00009E  4040                      DC    X'4040'             
+ * COMPILER GENERATED SUBROUTINE IELCGMY                                                                                 
+ 000000  19 97                     CR    9,7                 * END OF COMPILER GENERATED SUBROUTINE                      
+ 000002  47 D0 F 040               BNH   *+62                                                                            
+ 000006  18 08                     LR    0,8                                                                             
+ 000008  1A 87                     AR    8,7                 * STATEMENT NUMBER  1                                       
+ 00000A  D2 00 8 000 F 09C         MVC   0(1,8),156(15)      000000                            DC    C' VERPCR'          
+ 000010  1B 97                     SR    9,7                 000007                            DC    AL1(6)              
+ 000012  4B 90 F 098               SH    9,152(0,15)                                                                     
+ 000016  47 40 F 036               BM    *+32                * PROCEDURE                             VERPCR              
+ 00001A  41 10 0 100               LA    1,256(0,0)                                                                      
+ 00001E  19 91                     CR    9,1                 * REAL ENTRY                                                
+ 000020  47 40 F 032               BL    *+18                000008  90 EC D 00C               STM   14,12,12(13)        
+ 000024  D2 FF 8 001 8 000         MVC   1(256,8),0(8)       00000C  47 F0 F 04C               B     *+72                
+ 00002A  1A 81                     AR    8,1                 000010  00000000                  DC    A(STMT. NO. TABLE)  
+ 00002C  1B 91                     SR    9,1                 000014  000002A8                  DC    F'680'              
+ 00002E  47 F0 F 01E               B     *-16                000018  00000000                  DC    A(STATIC CSECT)     
+ 000032  44 90 F 092               EX    9,*+96              00001C  00000000                  DC    A(SYMTAB VECTOR)    
+ 000036  18 80                     LR    8,0                 000020  00000000                  DC    A(COMPILATION INFO) 
+ 000038  18 97                     LR    9,7                 000024  E8800000                  DC    X'E8800000'         
+ 00003A  47 F0 F 040               B     *+6                 000028  00010100                  DC    X'00010100'         
+ 00003E  07 00                     NOPR  0                   00002C  00000000                  DC    X'00000000'         
+ 000040  4B 90 F 09A               SH    9,154(0,15)         000030  00000000                  DC    X'00000000'         
+ 000044  47 B0 F 04A               BNM   *+6                 000034  00000000                  DC    A(ENTRY LIST VECTOR)
+ 000048  07 FE                     BR    14                  000038  00000000                  DC    X'00000000'         
+ 00004A  41 10 0 100               LA    1,256(0,0)          00003C  01008000                  DC    X'01008000'         
+ 00004E  19 91                     CR    9,1                 000040  00000000                  DC    A(REGION TABLE)     
+ 000050  47 40 F 064               BL    *+20                000044  00000003                  DC    X'00000003'         
+ 000054  D2 FF 8 000 6 000         MVC   0(256,8),0(6)       000048  00000000                  DC    A(PRIMARY ENTRY)    
+ 00005A  1A 81                     AR    8,1                 00004C  00000000                  DC    X'00000000'         
+ 00005C  1A 61                     AR    6,1                 000050  00000000                  DC    X'00000000'         
+ 00005E  1B 91                     SR    9,1                 000054  58 30 F 010               L     3,16(0,15)          
+ 000060  47 F0 F 04E               B     *-18                000058  58 10 D 04C               L     1,76(0,13)          
+ 000064  44 90 F 08C               EX    9,*+40              00005C  58 00 F 00C               L     0,12(0,15)          
+ 000068  07 FE                     BR    14                  000060  1E 01                     ALR   0,1                 
+ 00006A  1A 77                     AR    7,7                 000062  55 00 C 00C               CL    0,12(0,12)          
+ 00006C  1A 99                     AR    9,9                 000066  47 D0 F 068               BNH   *+10                
+ 00006E  19 97                     CR    9,7                 00006A  58 F0 C 074               L     15,116(0,12)        
+ 000070  47 D0 F 040               BNH   *-48                00006E  05 EF                     BALR  14,15               
+ 000074  18 08                     LR    0,8                 000070  58 E0 D 048               L     14,72(0,13)         
+ 000076  1A 87                     AR    8,7                 000074  18 F0                     LR    15,0                
+ 000078  D2 00 8 000 F 09E         MVC   0(1,8),158(15)      000076  90 E0 1 048               STM   14,0,72(1)          
+ 00007E  47 F0 F 010               B     *-110               00007A  50 D0 1 004               ST    13,4(0,1)           
+ 000082  1A 87                     AR    8,7                 00007E  92 80 1 000               MVI   0(1),X'80'          
+ 000084  07 07                     NOPR  7                   000082  92 25 1 001               MVI   1(1),X'25'          
+ 000086  1A 99                     AR    9,9                 000086  92 02 1 076               MVI   118(1),X'02'        
+ 000088  47 F0 F 040               B     *-72                00008A  41 D1 0 000               LA    13,0(1,0)           
+ 00008C  D2 00 8 000 6 000         MVC   0(1,8),0(6)         00008E  D2 03 D 054 3 078         MVC   84(4,13),120(3)     
+ 000092  D2 00 8 001 8 000         MVC   1(1,8),0(8)         000094  05 20                     BALR  2,0                 
+ 000098                            DC    AL2(2)                                                                          
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE   6
+-* PROLOGUE BASE                                                                                                         
+ 000096  D2 07 D 0B8 3 038         MVC   LOCATOR..PARM(8),5  * STATEMENT NUMBER  10                                      
+                                         6(3)                000114  58 90 D 0E0               L     9,PCRCB_PTR         
+ 00009C  41 E0 D 0F0               LA    14,PARM             000118  D5 03 9 014 3 0E8         CLC   PCRCB_STRUCT.PCRCB  
+ 0000A0  50 E0 D 0B8               ST    14,LOCATOR..PARM                                            _TYPE(4),232(3)     
+ 0000A4  05 20                     BALR  2,0                 00011E  47 70 2 424               BNE   CL.2                
+          
+ * PROCEDURE BASE                                                                                                        
+                                                             * STATEMENT NUMBER  11                                      
+                                                             000122  58 80 D 0E0               L     8,PCRCB_PTR         
+                                                             000126  58 60 8 040               L     6,PCRCB_STRUCT.PCR  
+ * STATEMENT NUMBER  7                                                                               CB_RX_ARGLIST       
+ 0000A6  41 70 D 0E0               LA    7,PCRCB_PTR         00012A  50 60 D 0DC               ST    6,RXARG_PTR         
+ 0000AA  50 70 3 0B4               ST    7,180(0,3)                                                                      
+ 0000AE  96 80 3 0B4               OI    180(3),X'80'                                                                    
+ 0000B2  1B 55                     SR    5,5                 * STATEMENT NUMBER  12                                      
+ 0000B4  41 10 3 0B4               LA    1,180(0,3)          00012E  58 60 D 0E0               L     6,PCRCB_PTR         
+ 0000B8  58 F0 3 0E4               L     15,228(0,3)         000132  58 E0 6 044               L     14,PCRCB_STRUCT.PC  
+ 0000BC  05 EF                     BALR  14,15                                                       RCB_RX_ARGCNT       
+ 0000BE  50 F0 C 044               ST    15,68(0,12)         000136  50 E0 D 228               ST    14,552(0,13)        
+                                                             00013A  48 F0 3 022               LH    15,34(0,3)          
+                                                             00013E  40 F0 D 0E8               STH   15,K                
+ * STATEMENT NUMBER  8                                       000142  49 E0 D 0E8               CH    14,K                
+ 0000C2  58 70 D 0E0               L     7,PCRCB_PTR         000146  47 40 2 118               BL    CL.4                
+ 0000C6  58 90 7 00C               L     9,PCRCB_STRUCT.PCR  00014A                    CL.3    EQU   *                   
+                                         CB_ARG_PTR                                                                      
+ 0000CA  58 40 D 0E0               L     4,PCRCB_PTR                                                                     
+ 0000CE  18 E9                     LR    14,9                * STATEMENT NUMBER  13                                      
+ 0000D0  50 E0 D 220               ST    14,544(0,13)        00014A  41 10 3 0BC               LA    1,188(0,3)          
+ 0000D4  58 80 4 010               L     8,PCRCB_STRUCT.PCR  00014E  58 F0 3 018               L     15,A..IBMSJDSA      
+                                         CB_ARG_LEN          000152  05 EF                     BALR  14,15               
+ 0000D8  50 80 D 224               ST    8,548(0,13)                                                                     
+ 0000DC  58 90 D 224               L     9,548(0,13)                                                                     
+ 0000E0  49 90 3 020               CH    9,32(0,3)           * STATEMENT NUMBER  14                                      
+ 0000E4  47 D0 2 046               BNH   CL.13               000154  58 70 D 0DC               L     7,RXARG_PTR         
+ 0000E8  48 90 3 020               LH    9,32(0,3)           000158  58 40 7 000               L     4,RXARG_STRUCT.RXA  
+ 0000EC                    CL.13   EQU   *                                                           RG_ADDR             
+ 0000EC  40 90 D 0F0               STH   9,PARM              00015C  58 90 D 0DC               L     9,RXARG_PTR         
+ 0000F0  41 80 D 0F2               LA    8,PARM+2            000160  18 84                     LR    8,4                 
+ 0000F4  18 6E                     LR    6,14                000162  50 80 D 22C               ST    8,556(0,13)         
+ 0000F6  58 F0 3 014               L     15,A..IELCGMY       000166  58 E0 9 004               L     14,RXARG_STRUCT.RX  
+ 0000FA  45 E0 F 040               BAL   14,64(0,15)                                                 ARG_LEN             
+                                                             00016A  50 E0 D 230               ST    14,560(0,13)        
+                                                             00016E  D2 07 D 258 3 048         MVC   600(8,13),72(3)     
+ * STATEMENT NUMBER  9                                       000174  50 80 D 258               ST    8,600(0,13)         
+ 0000FE  41 90 D 0B8               LA    9,184(0,13)         000178  48 80 D 232               LH    8,562(0,13)         
+ 000102  50 90 3 0B8               ST    9,184(0,3)          00017C  40 80 D 25C               STH   8,604(0,13)         
+ 000106  96 80 3 0B8               OI    184(3),X'80'        000180  41 80 D 258               LA    8,600(0,13)         
+ 00010A  41 10 3 0B8               LA    1,184(0,3)          000184  50 80 3 0C0               ST    8,192(0,3)          
+ 00010E  58 F0 3 018               L     15,A..IBMSJDSA      000188  96 80 3 0C0               OI    192(3),X'80'        
+ 000112  05 EF                     BALR  14,15               00018C  41 10 3 0C0               LA    1,192(0,3)          
+                                                             000190  58 F0 3 018               L     15,A..IBMSJDSA      
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE   7
+-000194  05 EF                     BALR  14,15               00020E  05 EF                     BALR  14,15               
+                                                             000210  58 E0 D 260               L     14,608(0,13)        
+                                                             000214  50 E0 9 008               ST    14,PCRCB_STRUCT.PC  
+ * STATEMENT NUMBER  15                                                                              RCB_LOCAL_PTR       
+ 000196  58 80 D 0DC               L     8,RXARG_PTR                                                                     
+ 00019A  58 60 3 07C               L     6,124(0,3)                                                                      
+ 00019E  5E 60 D 0DC               AL    6,RXARG_PTR         * STATEMENT NUMBER  20                                      
+ 0001A2  50 60 D 0DC               ST    6,RXARG_PTR         000218  58 80 D 0E0               L     8,PCRCB_PTR         
+                                                             00021C  58 B0 8 008               L     11,PCRCB_STRUCT.PC  
+                                                                                                     RCB_LOCAL_PTR       
+ * STATEMENT NUMBER  16                                      000220  4E B0 D 090               CVD   11,WKSP.1+24        
+ 0001A6  48 E0 D 0E8               LH    14,K                000224  D2 05 D 088 D 092         MVC   WKSP.1+16(6),WKSP.  
+ 0001AA  4A E0 3 022               AH    14,34(0,3)                                                  1+26                
+ 0001AE  40 E0 D 0E8               STH   14,K                00022A  41 10 D 267               LA    1,615(0,13)         
+ 0001B2  48 E0 D 0E8               LH    14,K                00022E  D2 0D D 25A 3 024         MVC   602(14,13),36(3)    
+ 0001B6  59 E0 D 228               C     14,552(0,13)        000234  DF 0B D 25C D 088         EDMK  604(12,13),WKSP.1+  
+ 0001BA  47 C0 2 0A4               BNH   CL.3                                                        16                  
+ 0001BE                    CL.4    EQU   *                   00023A  47 B0 2 19E               BNM   CL.14               
+                                                             00023E  06 10                     BCTR  1,0                 
+                                                             000240  92 60 1 000               MVI   0(1),X'60'          
+ * STATEMENT NUMBER  17                                      000244                    CL.14   EQU   *                   
+ 0001BE  58 70 D 0E0               L     7,PCRCB_PTR         000244  D2 14 D 268 3 0F6         MVC   616(21,13),246(3)   
+ 0001C2  58 90 7 050               L     9,PCRCB_STRUCT.PCR  00024A  D2 0D D 27D D 25A         MVC   637(14,13),602(13)  
+                                         CB_STOR_OBTAIN      000250  D2 07 D 28C 3 050         MVC   652(8,13),80(3)     
+ 0001C6  50 90 D 0CC               ST    9,PCRSTOR_OBTAIN    000256  41 60 D 268               LA    6,616(0,13)         
+ 0001CA  17 FF                     XR    15,15               00025A  50 60 D 28C               ST    6,652(0,13)         
+ 0001CC  50 F0 D 0D0               ST    15,PCRSTOR_OBTAIN+  00025E  41 60 D 28C               LA    6,652(0,13)         
+                                         4                   000262  50 60 3 0CC               ST    6,204(0,3)          
+                                                             000266  96 80 3 0CC               OI    204(3),X'80'        
+                                                             00026A  41 10 3 0CC               LA    1,204(0,3)          
+ * STATEMENT NUMBER  18                                      00026E  58 F0 3 018               L     15,A..IBMSJDSA      
+ 0001D0  58 40 D 0E0               L     4,PCRCB_PTR         000272  05 EF                     BALR  14,15               
+ 0001D4  58 A0 4 054               L     10,PCRCB_STRUCT.PC                                                              
+                                         RCB_STOR_RELEASE                                                                
+ 0001D8  50 A0 D 0D4               ST    10,PCRSTOR_RELEASE  * STATEMENT NUMBER  21                                      
+ 0001DC  17 66                     XR    6,6                 000274  58 60 D 0E0               L     6,PCRCB_PTR         
+ 0001DE  50 60 D 0D8               ST    6,PCRSTOR_RELEASE+  000278  41 F0 6 008               LA    15,PCRCB_STRUCT.PC  
+                                         4                                                           RCB_LOCAL_PTR       
+                                                             00027C  50 F0 3 0D0               ST    15,208(0,3)         
+                                                             000280  96 80 3 0D0               OI    208(3),X'80'        
+ * STATEMENT NUMBER  19                                      000284  58 50 D 0D8               L     5,PCRSTOR_RELEASE+  
+ 0001E2  58 90 D 0E0               L     9,PCRCB_PTR                                                 4                   
+ 0001E6  58 E0 3 080               L     14,128(0,3)         000288  41 10 3 0D0               LA    1,208(0,3)          
+ 0001EA  50 E0 D 258               ST    14,600(0,13)        00028C  58 F0 D 0D4               L     15,PCRSTOR_RELEASE  
+ 0001EE  41 80 D 258               LA    8,600(0,13)         000290  05 EF                     BALR  14,15               
+ 0001F2  50 80 3 0C4               ST    8,196(0,3)                                                                      
+ 0001F6  41 F0 D 260               LA    15,608(0,13)                                                                    
+ 0001FA  50 F0 3 0C8               ST    15,200(0,3)         * STATEMENT NUMBER  22                                      
+ 0001FE  96 80 3 0C8               OI    200(3),X'80'        000292  58 F0 D 0E0               L     15,PCRCB_PTR        
+ 000202  58 50 D 0D0               L     5,PCRSTOR_OBTAIN+4  000296  58 E0 F 048               L     14,PCRCB_STRUCT.PC  
+ 000206  41 10 3 0C4               LA    1,196(0,3)                                                  RCB_RX_EV_PTR       
+ 00020A  58 F0 D 0CC               L     15,PCRSTOR_OBTAIN   00029A  50 E0 D 0C0               ST    14,PCREV_PTR        
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE   8
+-         
+          
+ * STATEMENT NUMBER  23                                      * STATEMENT NUMBER  28                                      
+ 00029E  D2 17 D 258 3 084         MVC   600(24,13),132(3)   000314  D2 17 D 258 3 084         MVC   600(24,13),132(3)   
+ 0002A4  58 E0 D 0C0               L     14,PCREV_PTR        00031A  58 E0 D 0C0               L     14,PCREV_PTR        
+ 0002A8  58 B0 E 000               L     11,PCREV_STRUCT.PC  00031E  58 A0 E 000               L     10,PCREV_STRUCT.PC  
+                                         REV_BYTES                                                   REV_BYTES           
+ 0002AC  40 B0 D 26C               STH   11,620(0,13)        000322  40 A0 D 26C               STH   10,620(0,13)        
+ 0002B0  58 B0 D 0C0               L     11,PCREV_PTR        000326  D2 03 D 04C D 050         MVC   76(4,13),80(13)     
+ 0002B4  48 90 3 032               LH    9,50(0,3)           00032C  58 A0 D 0C0               L     10,PCREV_PTR        
+ 0002B8  49 90 D 26C               CH    9,620(0,13)         000330  41 00 0 130               LA    0,304(0,0)          
+ 0002BC  47 D0 2 21E               BNH   CL.15               000334  58 10 D 04C               L     1,76(0,13)          
+ 0002C0  48 90 D 26C               LH    9,620(0,13)         000338  1E 01                     ALR   0,1                 
+ 0002C4                    CL.15   EQU   *                   00033A  55 00 C 00C               CL    0,12(0,12)          
+ 0002C4  40 90 D 088               STH   9,WKSP.1+16         00033E  47 D0 2 2A2               BNH   CL.16               
+ 0002C8  D2 01 B 00E D 088         MVC   PCREV_STRUCT.PCREV  000342  58 F0 C 048               L     15,72(0,12)         
+                                         _DATA(2),WKSP.1+16  000346  05 EF                     BALR  14,15               
+ 0002CE  41 80 B 010               LA    8,PCREV_STRUCT.PCR  000348                    CL.16   EQU   *                   
+                                         EV_DATA+2           000348  50 00 D 04C               ST    0,76(0,13)          
+ 0002D2  41 60 3 10B               LA    6,267(0,3)          00034C  41 11 0 000               LA    1,0(1,0)            
+ 0002D6  58 F0 3 014               L     15,A..IELCGMY       000350  50 10 D 234               ST    1,564(0,13)         
+ 0002DA  45 E0 F 040               BAL   14,64(0,15)         000354  41 E0 3 126               LA    14,294(0,3)         
+                                                             000358  41 80 0 001               LA    8,1(0,0)            
+                                                             00035C  18 F1                     LR    15,1                
+ * STATEMENT NUMBER  24                                      00035E                    CL.17   EQU   *                   
+ 0002DE  58 90 D 0C0               L     9,PCREV_PTR         00035E  D2 FF F 000 E 000         MVC   0(256,15),0(14)     
+ 0002E2  58 80 3 09C               L     8,156(0,3)          000364  41 F0 F 100               LA    15,256(0,15)        
+ 0002E6  50 80 9 008               ST    8,PCREV_STRUCT.PCR  000368  41 E0 E 100               LA    14,256(0,14)        
+                                         EV_NEWBYTES         00036C  46 80 2 2B8               BCT   8,CL.17             
+                                                             000370  D2 2C F 000 E 000         MVC   0(45,15),0(14)      
+                                                             000376  48 E0 D 26C               LH    14,620(0,13)        
+ * STATEMENT NUMBER  25                                      00037A  50 E0 D 238               ST    14,568(0,13)        
+ 0002EA  58 60 D 0E0               L     6,PCRCB_PTR         00037E  41 00 0 009               LA    0,9(0,0)            
+ 0002EE  58 F0 6 04C               L     15,PCRCB_STRUCT.PC  000382  5A 00 D 238               A     0,568(0,13)         
+                                         RCB_RX_ENTRY_EVAL   000386  54 00 3 0A0               N     0,160(0,3)          
+ 0002F2  50 F0 D 0C4               ST    15,PCRGETEV         00038A  58 10 D 04C               L     1,76(0,13)          
+ 0002F6  17 EE                     XR    14,14               00038E  1E 01                     ALR   0,1                 
+ 0002F8  50 E0 D 0C8               ST    14,PCRGETEV+4       000390  55 00 C 00C               CL    0,12(0,12)          
+                                                             000394  47 D0 2 2F8               BNH   CL.18               
+                                                             000398  58 F0 C 048               L     15,72(0,12)         
+ * STATEMENT NUMBER  26                                      00039C  05 EF                     BALR  14,15               
+ 0002FC  1B 11                     SR    1,1                 00039E                    CL.18   EQU   *                   
+ 0002FE  58 50 D 0C8               L     5,PCRGETEV+4        00039E  50 00 D 04C               ST    0,76(0,13)          
+ 000302  58 F0 D 0C4               L     15,PCRGETEV         0003A2  41 11 0 000               LA    1,0(1,0)            
+ 000306  05 EF                     BALR  14,15               0003A6  50 10 D 23C               ST    1,572(0,13)         
+                                                             0003AA  58 E0 3 0A4               L     14,164(0,3)         
+                                                             0003AE  50 E0 D 240               ST    14,576(0,13)        
+ * STATEMENT NUMBER  27                                      0003B2  50 A0 D 2A0               ST    10,672(0,13)        
+ 000308  58 F0 D 0E0               L     15,PCRCB_PTR        0003B6  59 E0 D 238               C     14,568(0,13)        
+ 00030C  58 E0 F 048               L     14,PCRCB_STRUCT.PC  0003BA  47 40 2 320               BL    CL.8                
+                                         RCB_RX_EV_PTR       0003BE  58 E0 D 238               L     14,568(0,13)        
+ 000310  50 E0 D 0C0               ST    14,PCREV_PTR        0003C2  50 E0 D 240               ST    14,576(0,13)        
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE   9
+-0003C6                    CL.8    EQU   *                   000474  D2 0D D 25A 3 024         MVC   602(14,13),36(3)    
+ 0003C6  58 90 D 240               L     9,576(0,13)         00047A  DF 0B D 25C D 088         EDMK  604(12,13),WKSP.1+  
+ 0003CA  58 70 D 23C               L     7,572(0,13)                                                 16                  
+ 0003CE  41 80 7 002               LA    8,2(0,7)            000480  47 B0 2 3E4               BNM   CL.20               
+ 0003D2  41 60 3 10B               LA    6,267(0,3)          000484  06 10                     BCTR  1,0                 
+ 0003D6  58 F0 3 014               L     15,A..IELCGMY       000486  92 60 1 000               MVI   0(1),X'60'          
+ 0003DA  45 E0 F 040               BAL   14,64(0,15)         00048A                    CL.20   EQU   *                   
+ 0003DE  58 80 D 238               L     8,568(0,13)         00048A  D2 0F D 26A 3 253         MVC   618(16,13),595(3)   
+ 0003E2  5B 80 D 240               S     8,576(0,13)         000490  D2 0D D 27A D 25A         MVC   634(14,13),602(13)  
+ 0003E6  50 80 D 244               ST    8,580(0,13)         000496  D2 07 D 288 3 058         MVC   648(8,13),88(3)     
+ 0003EA  58 E0 3 0A8               L     14,168(0,3)         00049C  41 E0 D 26A               LA    14,618(0,13)        
+ 0003EE  50 E0 D 248               ST    14,584(0,13)        0004A0  50 E0 D 288               ST    14,648(0,13)        
+ 0003F2  19 E8                     CR    14,8                0004A4  41 40 D 288               LA    4,648(0,13)         
+ 0003F4  47 40 2 358               BL    CL.9                0004A8  50 40 3 0D4               ST    4,212(0,3)          
+ 0003F8  18 E8                     LR    14,8                0004AC  96 80 3 0D4               OI    212(3),X'80'        
+ 0003FA  50 E0 D 248               ST    14,584(0,13)        0004B0  41 10 3 0D4               LA    1,212(0,3)          
+ 0003FE                    CL.9    EQU   *                   0004B4  58 F0 3 018               L     15,A..IBMSJDSA      
+ 0003FE  58 90 D 248               L     9,584(0,13)         0004B8  05 EF                     BALR  14,15               
+ 000402  58 70 D 240               L     7,576(0,13)                                                                     
+ 000406  58 40 D 234               L     4,564(0,13)                                                                     
+ 00040A  58 F0 D 23C               L     15,572(0,13)        * STATEMENT NUMBER  30                                      
+ 00040E  41 87 F 002               LA    8,2(7,15)           0004BA  18 0D                     LR    0,13                
+ 000412  18 64                     LR    6,4                 0004BC  58 D0 D 004               L     13,4(0,13)          
+ 000414  58 F0 3 014               L     15,A..IELCGMY       0004C0  58 E0 D 00C               L     14,12(0,13)         
+ 000418  45 E0 F 040               BAL   14,64(0,15)         0004C4  98 2C D 01C               LM    2,12,28(13)         
+ 00041C  58 40 D 23C               L     4,572(0,13)         0004C8  05 1E                     BALR  1,14                
+ 000420  5A 70 D 248               A     7,584(0,13)                                                                     
+ 000424  40 70 D 088               STH   7,WKSP.1+16                                                                     
+ 000428  D2 01 4 000 D 088         MVC   0(2,4),WKSP.1+16    * STATEMENT NUMBER  31                                      
+ 00042E  58 70 D 2A0               L     7,672(0,13)                                                                     
+ 000432  D2 01 D 088 4 000         MVC   WKSP.1+16(2),0(4)                                                               
+ 000438  48 90 D 088               LH    9,WKSP.1+16         * STATEMENT NUMBER  32                                      
+ 00043C  49 90 D 26C               CH    9,620(0,13)         0004CA                    CL.2    EQU   *                   
+ 000440  47 D0 2 3A2               BNH   CL.19               0004CA  58 70 D 0E0               L     7,PCRCB_PTR         
+ 000444  48 90 D 26C               LH    9,620(0,13)         0004CE  D5 03 7 014 3 263         CLC   PCRCB_STRUCT.PCRCB  
+ 000448                    CL.19   EQU   *                                                           _TYPE(4),611(3)     
+ 000448  40 90 D 088               STH   9,WKSP.1+16         0004D4  47 70 2 44C               BNE   CL.5                
+ 00044C  D2 01 7 00E D 088         MVC   PCREV_STRUCT.PCREV                                                              
+                                         _DATA(2),WKSP.1+16                                                              
+ 000452  41 80 7 010               LA    8,PCREV_STRUCT.PCR  * STATEMENT NUMBER  33                                      
+                                         EV_DATA+2           0004D8  41 10 3 0D8               LA    1,216(0,3)          
+ 000456  41 60 4 002               LA    6,2(0,4)            0004DC  58 F0 3 018               L     15,A..IBMSJDSA      
+ 00045A  58 F0 3 014               L     15,A..IELCGMY       0004E0  05 EF                     BALR  14,15               
+ 00045E  45 E0 F 040               BAL   14,64(0,15)                                                                     
+          
+                                                             * STATEMENT NUMBER  34                                      
+ * STATEMENT NUMBER  29                                      0004E2  18 0D                     LR    0,13                
+ 000462  58 A0 D 0C0               L     10,PCREV_PTR        0004E4  58 D0 D 004               L     13,4(0,13)          
+ 000466  4E A0 D 090               CVD   10,WKSP.1+24        0004E8  58 E0 D 00C               L     14,12(0,13)         
+ 00046A  D2 05 D 088 D 092         MVC   WKSP.1+16(6),WKSP.  0004EC  98 2C D 01C               LM    2,12,28(13)         
+                                         1+26                0004F0  05 1E                     BALR  1,14                
+ 000470  41 10 D 267               LA    1,615(0,13)                                                                     
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE  10
+-                                                            000586  58 E0 D 00C               L     14,12(0,13)         
+ * STATEMENT NUMBER  35                                      00058A  98 2C D 01C               LM    2,12,28(13)         
+                                                             00058E  05 1E                     BALR  1,14                
+          
+ * STATEMENT NUMBER  36                                                                                                  
+ 0004F2                    CL.5    EQU   *                   * STATEMENT NUMBER  39                                      
+ 0004F2  58 70 D 0E0               L     7,PCRCB_PTR                                                                     
+ 0004F6  D5 03 7 014 3 274         CLC   PCRCB_STRUCT.PCRCB                                                              
+                                         _TYPE(4),628(3)     * STATEMENT NUMBER  40                                      
+ 0004FC  47 70 2 4EA               BNE   CL.6                000590                    CL.6    EQU   *                   
+                                                             000590  58 70 D 0E0               L     7,PCRCB_PTR         
+                                                             000594  D5 03 7 014 3 283         CLC   PCRCB_STRUCT.PCRCB  
+ * STATEMENT NUMBER  37                                                                              _TYPE(4),643(3)     
+ 000500  D2 03 D 04C D 050         MVC   76(4,13),80(13)     00059A  47 70 2 576               BNE   CL.7                
+ 000506  41 00 0 140               LA    0,320(0,0)                                                                      
+ 00050A  58 10 D 04C               L     1,76(0,13)                                                                      
+ 00050E  1E 01                     ALR   0,1                 * STATEMENT NUMBER  41                                      
+ 000510  55 00 C 00C               CL    0,12(0,12)          00059E  D2 03 D 04C D 050         MVC   76(4,13),80(13)     
+ 000514  47 D0 2 478               BNH   CL.21               0005A4  41 00 0 148               LA    0,328(0,0)          
+ 000518  58 F0 C 048               L     15,72(0,12)         0005A8  58 10 D 04C               L     1,76(0,13)          
+ 00051C  05 EF                     BALR  14,15               0005AC  1E 01                     ALR   0,1                 
+ 00051E                    CL.21   EQU   *                   0005AE  55 00 C 00C               CL    0,12(0,12)          
+ 00051E  50 00 D 04C               ST    0,76(0,13)          0005B2  47 D0 2 516               BNH   CL.22               
+ 000522  41 11 0 000               LA    1,0(1,0)            0005B6  58 F0 C 048               L     15,72(0,12)         
+ 000526  50 10 D 24C               ST    1,588(0,13)         0005BA  05 EF                     BALR  14,15               
+ 00052A  D2 0A 1 002 3 278         MVC   2(11,1),632(3)      0005BC                    CL.22   EQU   *                   
+ 000530  58 E0 3 0AC               L     14,172(0,3)         0005BC  50 00 D 04C               ST    0,76(0,13)          
+ 000534  18 FE                     LR    15,14               0005C0  41 11 0 000               LA    1,0(1,0)            
+ 000536  4A E0 D 0F0               AH    14,PARM             0005C4  50 10 D 250               ST    1,592(0,13)         
+ 00053A  48 90 D 0F0               LH    9,PARM              0005C8  D2 12 1 002 3 287         MVC   2(19,1),647(3)      
+ 00053E  41 8F 1 002               LA    8,2(15,1)           0005CE  58 40 3 0B0               L     4,176(0,3)          
+ 000542  41 60 D 0F2               LA    6,PARM+2            0005D2  18 84                     LR    8,4                 
+ 000546  18 5E                     LR    5,14                0005D4  4A 40 D 0F0               AH    4,PARM              
+ 000548  18 4F                     LR    4,15                0005D8  18 58                     LR    5,8                 
+ 00054A  58 F0 3 014               L     15,A..IELCGMY       0005DA  48 90 D 0F0               LH    9,PARM              
+ 00054E  45 E0 F 040               BAL   14,64(0,15)         0005DE  41 85 1 002               LA    8,2(5,1)            
+ 000552  58 90 D 24C               L     9,588(0,13)         0005E2  41 60 D 0F2               LA    6,PARM+2            
+ 000556  40 50 D 088               STH   5,WKSP.1+16         0005E6  58 F0 3 014               L     15,A..IELCGMY       
+ 00055A  D2 01 9 000 D 088         MVC   0(2,9),WKSP.1+16    0005EA  45 E0 F 040               BAL   14,64(0,15)         
+ 000560  D2 07 D 258 3 068         MVC   600(8,13),104(3)    0005EE  58 90 D 250               L     9,592(0,13)         
+ 000566  50 90 D 258               ST    9,600(0,13)         0005F2  40 40 D 088               STH   4,WKSP.1+16         
+ 00056A  41 40 D 258               LA    4,600(0,13)         0005F6  D2 01 9 000 D 088         MVC   0(2,9),WKSP.1+16    
+ 00056E  50 40 3 0DC               ST    4,220(0,3)          0005FC  D2 07 D 258 3 070         MVC   600(8,13),112(3)    
+ 000572  96 80 3 0DC               OI    220(3),X'80'        000602  50 90 D 258               ST    9,600(0,13)         
+ 000576  41 10 3 0DC               LA    1,220(0,3)          000606  41 40 D 258               LA    4,600(0,13)         
+ 00057A  58 F0 3 018               L     15,A..IBMSJDSA      00060A  50 40 3 0E0               ST    4,224(0,3)          
+ 00057E  05 EF                     BALR  14,15               00060E  96 80 3 0E0               OI    224(3),X'80'        
+                                                             000612  41 10 3 0E0               LA    1,224(0,3)          
+                                                             000616  58 F0 3 018               L     15,A..IBMSJDSA      
+ * STATEMENT NUMBER  38                                      00061A  05 EF                     BALR  14,15               
+ 000580  18 0D                     LR    0,13                                                                            
+ 000582  58 D0 D 004               L     13,4(0,13)                                                                      
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE  11
+-* STATEMENT NUMBER  42                                      
+          
+          
+ * STATEMENT NUMBER  43                                      
+ 00061C                    CL.7    EQU   *                   
+ 00061C  18 0D                     LR    0,13                
+ 00061E  58 D0 D 004               L     13,4(0,13)          
+ 000622  58 E0 D 00C               L     14,12(0,13)         
+ 000626  98 2C D 01C               LM    2,12,28(13)         
+ 00062A  05 1E                     BALR  1,14                
+          
+ * END PROCEDURE                                             
+          
+ * END PROGRAM                                               
+15688-235 IBM PL/I for MVS & VM          Verpcr:                                                                 PAGE  12
+-COMPILER DIAGNOSTIC MESSAGES OF SEVERITY W AND ABOVE
+-ERROR ID L   STMT    MESSAGE DESCRIPTION                                                                                
+0         
+0WARNING DIAGNOSTIC MESSAGES                                                                                             
+0         
+0IEL0804I W   9       STRING LENGTH FOR 'DISPLAY' EXCEEDS 72 CHARACTERS.    TERMINAL MAY NOT SUPPORT THIS.    FIRST 126  
+                      CHARACTERS USED.                                                                                   
+0IEL0804I W   37      STRING LENGTH FOR 'DISPLAY' EXCEEDS 72 CHARACTERS.    TERMINAL MAY NOT SUPPORT THIS.    FIRST 126  
+                      CHARACTERS USED.                                                                                   
+0IEL0804I W   41      STRING LENGTH FOR 'DISPLAY' EXCEEDS 72 CHARACTERS.    TERMINAL MAY NOT SUPPORT THIS.    FIRST 126  
+                      CHARACTERS USED.                                                                                   
+0         
+0MESSAGES SUPPRESSED BY THE FLAG OPTION:  7 I.                                                                           
+0         
+0END OF COMPILER DIAGNOSTIC MESSAGES                                                                                     
+-COMPILE TIME    0.00 MINS        SPILL FILE:     0 RECORDS, SIZE  4051
+-NUMBER OF TEMPORARY VARIABLES USED:    90.  NUMBER AVAILABLE: 65445   
+-END OF COMPILATION OF VERPCR                                          
+          

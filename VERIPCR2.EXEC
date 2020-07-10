@@ -1,0 +1,15 @@
+/* Short exec to verify PCR installation */                                     
+/* This exec tests to see if REXX will locate and load */                       
+/* the renamed PCRRXFN (to RXUSERFN) module. If found PCRRXFN */                
+/* will automatically invoke the PCR command to set up the */                   
+/* runtime environment. Makes using PL/I modules from REXX */                   
+/* a bit easier.           */                                                   
+   trace o                                                                      
+   'nucxmap'                    /* show the user what's been NUCXLOAD  */       
+/* Invoke plifn1 twice and display what it returns */                           
+   say length(PLIFN1('Arg1','Arg2')) PLIFN1(1,2)                                
+   say PLIFN2('Arg1','Arg2')    /* invoke VERIFPCR module via "plifn2" */       
+   rc = PLIFN3(6,7,8)                              /* and via "plifn3" */       
+   say rc                                                                       
+   call PLIFN3 arg1,arg2,arg3,arg4                            /* again */       
+   exit                                                                         

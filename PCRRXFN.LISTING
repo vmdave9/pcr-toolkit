@@ -1,0 +1,612 @@
+¤
+                                         High Level Assembler Option Summary                   (PTF UI65289)   Page    1
+                                                                                            HLASM R6.0  2020/06/17 09.38
+  No Overriding ASMAOPT Parameters
+  No Overriding Parameters
+  No Process Statements
+
+
+  Options for this Assembly
+                    NOADATA
+                      ALIGN
+                    NOASA
+                      BATCH
+                      CODEPAGE(047C)
+                    NOCOMPAT
+                    NODATAMAP
+                    NODBCS
+                    NODECK
+                      DXREF
+                      ESD
+                    NOEXIT
+                      FAIL(NOMSG,NOMNOTE,MAXERRS(500))
+                      FLAG(0,ALIGN,CONT,EXLITW,NOIMPLEN,NOLONGER,NOPAGE0,PUSH,RECORD,NOSIGNED,NOSUBSTR,NOTRUNC,USING0)
+                    NOFOLD
+                    NOGOFF
+                    NOINFO
+                      ILMA
+                      LANGUAGE(EN)
+                    NOLIBMAC
+                      LINECOUNT(60)
+                      LIST(121)
+                      MACHINE(,NOLIST)
+                      MXREF(SOURCE)
+                      OBJECT
+                      OPTABLE(UNI,NOLIST)
+                    NOPCONTROL
+                    NOPESTOP
+                    NOPROFILE
+                    NORA2
+                    NORENT
+                      RLD
+                      RXREF
+                      SECTALGN(8)
+                      SIZE(MAX)
+                    NOSUPRWARN
+                      SYSPARM()
+                    NOTERM
+                    NOTEST
+                      THREAD
+                    NOTRANSLATE
+                      TYPECHECK(MAGNITUDE,REGISTER)
+                      USING(NOLIMIT,MAP,WARN(15))
+                    NOWORKFILE
+                      XREF(SHORT,UNREFS)
+
+  No Overriding DD Names
+¤
+                                              External Symbol Dictionary                                       Page    2
+Symbol   Type   Id     Address  Length   Owner Id Flags Alias-of                            HLASM R6.0  2020/06/17 09.38
+RXUSERFN  SD 00000001 00000000 00000345             06
+¤
+                                                                                                               Page    3
+  Active Usings: None
+  Loc  Object Code    Addr1 Addr2  Stmt   Source Statement                                  HLASM R6.0  2020/06/17 09.38
+                                      1 *********************************************************************** PCR00010
+                                      2 *  Rexx Function Library interface to PCR                               PCR00020
+                                      3 *                                                                       PCR00030
+                                      4 *  - Can be renamed to RXUSERFN, RXLOCFN or RXSYSFN                     PCR00040
+                                      5 *  - Autoloads PLI program that are Rexx Funs/Subs via PCR LOAD         PCR00050
+                                      6 *                                                                       PCR00060
+                                      7 *********************************************************************** PCR00070
+                                      8 *                                                                       PCR00080
+                                      9 RXUSERFN AMODE 31                                                       PCR00090
+                                     10 RXUSERFN RMODE ANY                                                      PCR00100
+000000                00000 00345    11 RXUSERFN CSECT                                                          PCR00110
+                                     12          REGEQU                                                         PCR00120
+                                     13+         PUSH  PRINT                                                    01-REGEQ
+                                     14+*
+                                     15+***      SYMBOLIC REGISTER EQUATES
+                                     16+*
+                                     18+* GENERAL PURPOSE REGISTERS
+                      00000          20+R0       EQU   0                                                        01-REGEQ
+                      00001          21+R1       EQU   1                                                        01-REGEQ
+                      00002          22+R2       EQU   2                                                        01-REGEQ
+                      00003          23+R3       EQU   3                                                        01-REGEQ
+                      00004          24+R4       EQU   4                                                        01-REGEQ
+                      00005          25+R5       EQU   5                                                        01-REGEQ
+                      00006          26+R6       EQU   6                                                        01-REGEQ
+                      00007          27+R7       EQU   7                                                        01-REGEQ
+                      00008          28+R8       EQU   8                                                        01-REGEQ
+                      00009          29+R9       EQU   9                                                        01-REGEQ
+                      0000A          30+R10      EQU   10                                                       01-REGEQ
+                      0000B          31+R11      EQU   11                                                       01-REGEQ
+                      0000C          32+R12      EQU   12                                                       01-REGEQ
+                      0000D          33+R13      EQU   13                                                       01-REGEQ
+                      0000E          34+R14      EQU   14                                                       01-REGEQ
+                      0000F          35+R15      EQU   15                                                       01-REGEQ
+                                     37+* FLOATING POINT REGISTERS
+                      00000          39+F0       EQU   0                                                        01-REGEQ
+                      00002          40+F2       EQU   2                                                        01-REGEQ
+                      00004          41+F4       EQU   4                                                        01-REGEQ
+                      00006          42+F6       EQU   6                                                        01-REGEQ
+                                     44+* EXTENDED CONTROL REGISTERS
+                      00000          46+C0       EQU   0                                                        01-REGEQ
+                      00001          47+C1       EQU   1                                                        01-REGEQ
+                      00002          48+C2       EQU   2                                                        01-REGEQ
+                      00003          49+C3       EQU   3                                                        01-REGEQ
+                      00004          50+C4       EQU   4                                                        01-REGEQ
+                      00005          51+C5       EQU   5                                                        01-REGEQ
+                      00006          52+C6       EQU   6                                                        01-REGEQ
+                      00007          53+C7       EQU   7                                                        01-REGEQ
+i                      00008          54+C8       EQU   8                                                        01-REGEQ
+                                                                                                               Page    4
+  Active Usings: None
+  Loc  Object Code    Addr1 Addr2  Stmt   Source Statement                                  HLASM R6.0  2020/06/17 09.38
+                      00009          55+C9       EQU   9                                                        01-REGEQ
+                      0000A          56+C10      EQU   10                                                       01-REGEQ
+                      0000B          57+C11      EQU   11                                                       01-REGEQ
+                      0000C          58+C12      EQU   12                                                       01-REGEQ
+                      0000D          59+C13      EQU   13                                                       01-REGEQ
+                      0000E          60+C14      EQU   14                                                       01-REGEQ
+i                      0000F          61+C15      EQU   15                                                       01-REGEQ
+                                                                                                               Page    5
+  Active Usings: None
+  Loc  Object Code    Addr1 Addr2  Stmt   Source Statement                                  HLASM R6.0  2020/06/17 09.38
+                                     63+         POP   PRINT                                                    01-REGEQ
+                 R:C  00000          64          USING    *,R12                                                 PCR00130
+000000 17FF                          65          XR       R15,R15      ;This will default RC to 0               PCR00140
+000002 90EC D00C            0000C    66          STM      R14,R12,12(R13)                                       PCR00150
+000006 18A0                          67          LR       R10,R0       ;Save these Regs                         PCR00160
+000008 18B1                          68          LR       R11,R1       ;Save these Regs                         PCR00170
+                                     69 *                                                                       PCR00180
+                                     70 * Load as Nucleus Extension                                             PCR00190
+                                     71 *                                                                       PCR00200
+00000A 5890 C328            00328    72          L        R9,MODSTAT                                            PCR00210
+00000E 07F9                          73          BR       R9           ;Either NOLMOD or LMOD                   PCR00220
+                      00010          74 LMOD     EQU      *                                                     PCR00230
+000010 4110 C218            00218    75          LA       R1,LMODPL    ;Get parms for Nucxloading               PCR00240
+000014 D207 C220 B000 00220 00000    76          MVC      LMPNAME,0(R11)                                        PCR00250
+00001A 0ACA                          77          SVC      202          ;..                                      PCR00260
+00001C 00000001                      78          DC       AL4(1)       ;Check error ourself                     PCR00270
+000020 12FF                          79          LTR      R15,R15      ;Was it good                             PCR00280
+000022 4770 C03A            0003A    80          BNE      FIXLMOD      ;No, must already be an extension        PCR00290
+000026 181B                          81          LR       R1,R11                                                PCR00300
+000028 180A                          82          LR       R0,R10                                                PCR00310
+00002A 0ACA                          83          SVC      202          ;Invoke the now Nucxloaded module        PCR00320
+00002C 00000001                      84          DC       AL4(1)                                                PCR00330
+000030 50FD 0010            00010    85          ST       R15,16(R13)  ;save return                             PCR00340
+000034 98EC D00C            0000C    86          LM       R14,R12,12(R13) ;And leave...                         PCR00350
+000038 07FE                          87          BR       R14                                                   PCR00360
+                      0003A          88 FIXLMOD  EQU      *                                                     PCR00370
+00003A 4190 C042            00042    89          LA       R9,NOLMOD                                             PCR00380
+00003E 5090 C328            00328    90          ST       R9,MODSTAT   ;Now Nucxload will to be done again      PCR00390
+                      00042          91 NOLMOD   EQU      *                                                     PCR00400
+000042 95FF B008      00008          92          CLI      8(R11),X'FF'  ;Any parms                              PCR00410
+000046 4780 C1AA            001AA    93          BE       LEAVE        ;No, load and leave                      PCR00420
+00004A D507 B008 C330 00008 00330    94          CLC      8(8,R11),=CL8'LOAD'                                   PCR00430
+000050 4780 C072            00072    95          BE       LOADREQ      ;Do Load request                         PCR00440
+000054 D507 B008 C338 00008 00338    96          CLC      8(8,R11),=CL8'RESET'                                  PCR00450
+00005A 4780 C176            00176    97          BE       RESETREQ     ;Do Reset request                        PCR00460
+00005E BDB8 C344            00344    98          CLM      R11,B'1000',=X'FF' ;Could be an abend call            PCR00470
+000062 4780 C1AA            001AA    99          BE       LEAVE                                                 PCR00480
+000066 41F0 0004            00004   100          LA       R15,4        ;Set error code                          PCR00490
+00006A 50FD 0010            00010   101          ST       R15,16(R13)                                           PCR00500
+00006E 47F0 C1AA            001AA   102          B        LEAVE                                                 PCR00510
+                                    103 ************************                                                PCR00520
+                                    104 ** Load Request - External functions first                              PCR00530
+                                    105 *                                                                       PCR00540
+                      00072         106 LOADREQ  EQU      *                                                     PCR00550
+000072 4140 C1B8            001B8   107          LA       R4,XFUNTAB  ;Access the function table                PCR00560
+                 R:4  00000         108          USING    XFUNCB,R4                                             PCR00570
+000076 1854                         109          LR       R5,R4                                                 PCR00580
+000078 1845                         110 LR$XLOOP LR       R4,R5                                                 PCR00590
+00007A 95FF 4000      00000         111          CLI      0(R4),X'FF'  ;Last entry?                             PCR00600
+00007E 4780 C0B2            000B2   112          BE       LR$PLI                                                PCR00610
+000082 4154 0010            00010   113          LA       R5,XFCBLEN(R4)                                        PCR00620
+000086 D507 B010 4000 00010 00000   114          CLC      16(8,R11),XFCBNAME ;Does name match                   PCR00630
+00008C 4770 C078            00078   115          BNE      LR$XLOOP                                              PCR00640
+                                    116 * Found an external one                                                 PCR00650
+i000090 4110 C248            00248   117          LA       R1,XPLIST         ;Set up to issue NUCXLOAD           PCR00660
+                                                                                                               Page    6
+  Active Usings: XFUNCB,R4  RXUSERFN,R12
+  Loc  Object Code    Addr1 Addr2  Stmt   Source Statement                                  HLASM R6.0  2020/06/17 09.38
+000094 D207 C250 4000 00250 00000   118          MVC      XPNAME,XFCBNAME    ;                                  PCR00670
+00009A D207 C258 4008 00258 00008   119          MVC      XPMODN,XFCBMODN    ;                                  PCR00680
+0000A0 0ACA                         120          SVC      202               ;                                   PCR00690
+0000A2 00000001                     121          DC       AL4(1)                                                PCR00700
+0000A6 59F0 C340            00340   122          C        R15,=F'1'         ;More than error 1                  PCR00710
+0000AA 47D0 C1AA            001AA   123          BNH      LEAVE             ;Return with good news              PCR00720
+0000AE 47F0 C16A            0016A   124          B        LR$BAD                                                PCR00730
+                                    125          DROP     R4                                                    PCR00740
+                                    126 **********                                                              PCR00750
+                                    127 ** Search for PLI External functions                                    PCR00760
+                                    128 **                                                                      PCR00770
+0000B2 1845                         129 LR$PLI   LR       R4,R5                                                 PCR00780
+0000B4 4140 C1C0            001C0   130          LA       R4,XPLITAB  ;Access the function table                PCR00790
+                 R:4  00000         131          USING    XPLICB,R4                                             PCR00800
+0000B8 1854                         132          LR       R5,R4                                                 PCR00810
+0000BA 1845                         133 LR$PLOOP LR       R4,R5                                                 PCR00820
+0000BC 95FF 4000      00000         134          CLI      0(R4),X'FF'  ;Last entry?                             PCR00830
+0000C0 4780 C0FA            000FA   135          BE       LR$LOCAL                                              PCR00840
+0000C4 4154 0018            00018   136          LA       R5,XPCBLEN(R4)                                        PCR00850
+0000C8 D507 B010 4000 00010 00000   137          CLC      16(8,R11),XPCBNAME ;Does name match                   PCR00860
+0000CE 4770 C0BA            000BA   138          BNE      LR$PLOOP                                              PCR00870
+                                    139 * Found an external one                                                 PCR00880
+0000D2 4110 C278            00278   140          LA       R1,PCRPLIST      ;Set up to issue PCR LOAD            PCR00890
+0000D6 D207 C288 4000 00288 00000   141          MVC      PCRNAME,XPCBNAME    ;                                 PCR00900
+0000DC D207 C298 4008 00298 00008   142          MVC      PCRNUCX,XPCBNUCX    ;                                 PCR00910
+0000E2 D207 C2A0 4010 002A0 00010   143          MVC      PCRMOD,XPCBMOD      ;                                 PCR00920
+0000E8 0ACA                         144          SVC      202               ;                                   PCR00930
+0000EA 00000001                     145          DC       AL4(1)                                                PCR00940
+0000EE 59F0 C340            00340   146          C        R15,=F'1'         ;More than error 1                  PCR00950
+0000F2 47D0 C1AA            001AA   147          BNH      LEAVE             ;Return with good news              PCR00960
+0000F6 47F0 C16A            0016A   148          B        LR$BAD                                                PCR00970
+                                    149          DROP     R4                                                    PCR00980
+                                    150 **********                                                              PCR00990
+                                    151 ** Search for Local (link) functions                                    PCR01000
+                                    152 **                                                                      PCR01010
+                      000FA         153 LR$LOCAL EQU      *                                                     PCR01020
+0000FA 4140 C210            00210   154          LA       R4,LFUNTAB  ;Access the local function table          PCR01030
+                 R:4  00000         155          USING    LFUNCB,R4                                             PCR01040
+0000FE 1854                         156          LR       R5,R4                                                 PCR01050
+000100 1845                         157 LR$LLOOP LR       R4,R5                                                 PCR01060
+000102 95FF 4000      00000         158          CLI      0(R4),X'FF'  ;Last entry?                             PCR01070
+000106 4780 C136            00136   159          BE       LR$PACKS                                              PCR01080
+00010A 4154 0010            00010   160          LA       R5,LFCBLEN(R4)                                        PCR01090
+00010E D507 B010 4000 00010 00000   161          CLC      16(8,R11),LFCBNAME ;Does name match                   PCR01100
+000114 4770 C100            00100   162          BNE      LR$LLOOP                                              PCR01110
+                                    163 * Found a local link one                                                PCR01120
+000118 4110 C2B0            002B0   164          LA       R1,LPLIST         ;Set up to issue NUCEXT             PCR01130
+00011C D207 C2B8 4000 002B8 00000   165          MVC      LPNAME,LFCBNAME                                       PCR01140
+000122 D203 C2C4 4008 002C4 00008   166          MVC      LPADDR,LFCBADDR                                       PCR01150
+000128 0ACA                         167          SVC      202                                                   PCR01160
+00012A 00000001                     168          DC       AL4(1)                                                PCR01170
+00012E 92E8 400C      0000C         169          MVI      LFCBFLAG,C'Y'      ;Indicate it is loaded             PCR01180
+000132 47F0 C1AA            001AA   170          B        LEAVE                                                 PCR01190
+                                    171          DROP     R4                                                    PCR01200
+i                                    172 **********                                                              PCR01210
+                                                                                                               Page    7
+  Active Usings: RXUSERFN,R12
+  Loc  Object Code    Addr1 Addr2  Stmt   Source Statement                                  HLASM R6.0  2020/06/17 09.38
+                                    173 ** Search other packages next (and last)                                PCR01220
+                                    174 **                                                                      PCR01230
+                      00136         175 LR$PACKS EQU      *                                                     PCR01240
+000136 4140 C1B0            001B0   176          LA       R4,PACKTAB  ;Access the local function table          PCR01250
+                 R:4  00000         177          USING    PACKCB,R4                                             PCR01260
+00013A 1854                         178          LR       R5,R4                                                 PCR01270
+00013C D207 C308 B010 00308 00010   179          MVC      PKPFNAME,16(R11) ;Move over request from rexx         PCR01280
+000142 1845                         180 LR$PKLP  LR       R4,R5                                                 PCR01290
+000144 95FF 4000      00000         181          CLI      0(R4),X'FF'  ;Last entry?                             PCR01300
+000148 4780 C16A            0016A   182          BE       LR$BAD                                                PCR01310
+00014C 4154 0008            00008   183          LA       R5,PKCBLEN(R4)                                        PCR01320
+000150 D207 C2F8 4000 002F8 00000   184          MVC      PKPMNAME,PKCBNAME   ;Move name of package into PLIST  PCR01330
+000156 4110 C2F8            002F8   185          LA       R1,PKPLIST        ;call this package                  PCR01340
+00015A 0ACA                         186          SVC      202                                                   PCR01350
+00015C 00000001                     187          DC       AL4(1)                                                PCR01360
+000160 12FF                         188          LTR      R15,R15                                               PCR01370
+000162 4770 C142            00142   189          BNE      LR$PKLP           ;Not in this package - search more  PCR01380
+000166 47F0 C1AA            001AA   190          B        LEAVE             ;Yes, found....                     PCR01390
+                                    191          DROP     R4                                                    PCR01400
+                                    192 ********************************                                        PCR01410
+                                    193 **                                                                      PCR01420
+                                    194 ** The name was not found - return with rc=4                            PCR01430
+                                    195 **                                                                      PCR01440
+                      0016A         196 LR$BAD   EQU      *                                                     PCR01450
+00016A 41F0 0004            00004   197          LA       R15,4        ;Set error code of 1                     PCR01460
+00016E 50FD 0010            00010   198          ST       R15,16(R13)                                           PCR01470
+000172 47F0 C1AA            001AA   199          B        LEAVE                                                 PCR01480
+                                    200 ***************************************                                 PCR01490
+                                    201 **                                                                      PCR01500
+                                    202 ** Reset Request - Must undefine any local ones                         PCR01510
+                                    203 **                                                                      PCR01520
+                      00176         204 RESETREQ EQU      *                                                     PCR01530
+000176 4140 C210            00210   205          LA       R4,LFUNTAB  ;Access the function table                PCR01540
+                 R:4  00000         206          USING    LFUNCB,R4                                             PCR01550
+00017A 1854                         207          LR       R5,R4                                                 PCR01560
+00017C 4110 C2D4            002D4   208          LA       R1,RPLIST                                             PCR01570
+000180 1845                         209 RR$LOOP  LR       R4,R5                                                 PCR01580
+000182 95FF 4000      00000         210          CLI      0(R4),X'FF'  ;Last entry?                             PCR01590
+000186 4780 C1AA            001AA   211          BE       LEAVE                                                 PCR01600
+00018A 4154 0010            00010   212          LA       R5,LFCBLEN(R4)                                        PCR01610
+00018E 95E8 400C      0000C         213          CLI      LFCBFLAG,C'Y'   ;Is it a NUCEXT?                      PCR01620
+000192 4770 C180            00180   214          BNE      RR$LOOP                                               PCR01630
+                                    215 * Found one to undefine                                                 PCR01640
+000196 D207 C2DC 4000 002DC 00000   216          MVC      RPNAME,LFCBNAME                                       PCR01650
+00019C 92D5 400C      0000C         217          MVI      LFCBFLAG,C'N'                                         PCR01660
+0001A0 0ACA                         218          SVC      202                                                   PCR01670
+0001A2 00000001                     219          DC       AL4(1)                                                PCR01680
+0001A6 47F0 C180            00180   220          B        RR$LOOP                                               PCR01690
+                                    221          DROP     R4                                                    PCR01700
+                                    222 ***********************************                                     PCR01710
+                                    223 **                                                                      PCR01720
+                                    224 **Leave now                                                             PCR01730
+                                    225 **                                                                      PCR01740
+                      001AA         226 LEAVE    EQU      *                                                     PCR01750
+i0001AA 98EC D00C            0000C   227          LM       R14,R12,12(R13)                                       PCR01760
+                                                                                                               Page    8
+  Active Usings: RXUSERFN,R12
+  Loc  Object Code    Addr1 Addr2  Stmt   Source Statement                                  HLASM R6.0  2020/06/17 09.38
+0001AE 07FE                         228          BR       R14                                                   PCR01770
+                                    229 **********************************************                          PCR01780
+                                    230 **                                                                      PCR01790
+                                    231 ** Other function packatge modules to be search (called)                PCR01800
+                                    232 ** (Since Rexx will only search RXSYSFN, RXLOCFN, and RXUSERFN)         PCR01810
+                                    233 **                                                                      PCR01820
+                                    234 ** Make sure other RXUSERFN or RXLOCFN modules can handle having        PCR01830
+                                    235 ** a different name before renaming them and placing them into          PCR01840
+                                    236 ** this table.                                                          PCR01850
+                                    237 **                                                                      PCR01860
+0001B0                              238          DS       0D                                                    PCR01870
+                      001B0         239 PACKTAB  EQU      *                                                     PCR01880
+                                    240 **       DC       CL8'RXUSERF2'       ;Other module to call             PCR01890
+0001B0 FFFFFFFFFFFFFFFF             241 PACKTEND DC       8X'FF'                                                PCR01900
+                                    242 **********************************************                          PCR01910
+                                    243 **                                                                      PCR01920
+                                    244 ** Functions located Externally in their own modules                    PCR01930
+                                    245 ** (This table is search first, then the Local table)                   PCR01940
+                                    246 **                                                                      PCR01950
+0001B8                              247          DS       0D                                                    PCR01960
+                      001B8         248 XFUNTAB  EQU      *                                                     PCR01970
+                                    249 ***      DC       CL16'RXASM   ASM'       ;RXname/Modname               PCR01980
+0001B8 FFFFFFFFFFFFFFFF             250 XFUNEND  DC       8X'FF'                                                PCR01990
+                                    251 **********************************************                          PCR02000
+                                    252 **                                                                      PCR02010
+                                    253 ** Functions located Externally and are PLI programs                    PCR02020
+                                    254 ** (Searched after XFUN, but before internal)                           PCR02030
+                                    255 ** Three names are given, Rexx, Nucxload, and Module)                   PCR02040
+                                    256 **                                                                      PCR02050
+0001C0                              257          DS       0D                                                    PCR02060
+                      001C0         258 XPLITAB  EQU      *                                                     PCR02070
+0001C0 D9E7D7D3C9C6D5F1             259          DC       CL24'RXPLIFN1rxplifn1VERIFPCR' Rexx/Nucx/Mod          PCR02080
+0001D8 D9E7D7D3C9C6D5F2             260          DC       CL24'RXPLIFN2rxplifn2VERIFPCR' Rexx/Nucx/Mod          PCR02090
+0001F0 D9E7D7D3C9C6D5F3             261          DC       CL24'RXPLIFN3rxplifn3VERIFPCR' Rexx/Nucx/Mod          PCR02100
+000208 FFFFFFFFFFFFFFFF             262 XPLIEND  DC       8X'FF'                                                PCR02110
+                                    263 **********************************************                          PCR02120
+                                    264 **                                                                      PCR02130
+                                    265 ** Functions linked within this module as V() constants                 PCR02140
+                                    266 ** (This table is search last, after the External table)                PCR02150
+                                    267 **                                                                      PCR02160
+000210                              268          DS       0D                                                    PCR02170
+                      00210         269 LFUNTAB  EQU      *                                                     PCR02180
+                                    270 *        DC       CL8'RXA2E'    ;RXname of entry                        PCR02190
+                                    271 *        DC       V(A2E)        ;RXname/Modname                         PCR02200
+                                    272 *        DC       CL4'N'        ;flags                                  PCR02210
+000210 FFFFFFFFFFFFFFFF             273 LFUNEND  DC       8X'FF'                                                PCR02220
+                                    274 **********************************************                          PCR02230
+000218                              275          DS       0D                                                    PCR02240
+000218 D5E4C3E7D3D6C1C4             276 LMODPL   DC       CL8'NUCXLOAD'                                         PCR02250
+000220 D9E7E4E2C5D9C6D5             277 LMPNAME  DC       CL8'RXUSERFN'                                         PCR02260
+000228 4D40404040404040             278          DC       CL8'('                                                PCR02270
+000230 E2E8E2E3C5D44040             279          DC       CL8'SYSTEM'                                           PCR02280
+000238 E2C5D9E5C9C3C540             280          DC       CL8'SERVICE'                                          PCR02290
+000240 FFFFFFFFFFFFFFFF             281          DC       8X'FF'                                                PCR02300
+i                                    282 *                                                                       PCR02310
+                                                                                                               Page    9
+  Active Usings: RXUSERFN,R12
+  Loc  Object Code    Addr1 Addr2  Stmt   Source Statement                                  HLASM R6.0  2020/06/17 09.38
+000248 D5E4C3E7D3D6C1C4             283 XPLIST   DC       CL8'NUCXLOAD'                                         PCR02320
+000250                              284 XPNAME   DS       CL8                                                   PCR02330
+000258                              285 XPMODN   DS       CL8                                                   PCR02340
+000260 4D40404040404040             286          DC       CL8'('                                                PCR02350
+000268 E2E8E2E3C5D44040             287          DC       CL8'SYSTEM'                                           PCR02360
+000270 FFFFFFFFFFFFFFFF             288          DC       8X'FF'                                                PCR02370
+                                    289 *                                                                       PCR02380
+000278 D7C3D94040404040             290 PCRPLIST DC       CL8'PCR'                                              PCR02390
+000280 D3D6C1C440404040             291          DC       CL8'LOAD'                                             PCR02400
+000288                              292 PCRNAME  DS       CL8                                                   PCR02410
+000290 D9C5E7E740404040             293          DC       CL8'REXX'                                             PCR02420
+000298                              294 PCRNUCX  DS       CL8                                                   PCR02430
+0002A0                              295 PCRMOD   DS       CL8                                                   PCR02440
+0002A8 FFFFFFFFFFFFFFFF             296          DC       8X'FF'                                                PCR02450
+                                    297 *                                                                       PCR02460
+0002B0 D5E4C3C5E7E34040             298 LPLIST   DC       CL8'NUCEXT'                                           PCR02470
+0002B8                              299 LPNAME   DS       CL8                                                   PCR02480
+0002C0 FF048000                     300          DC       X'FF048000'                                           PCR02490
+0002C4                              301 LPADDR   DS       AL4                                                   PCR02500
+0002C8 00000000                     302          DC       A(0)                                                  PCR02510
+0002CC 00000000                     303          DC       A(0)                                                  PCR02520
+0002D0 00000000                     304          DC       A(0)                                                  PCR02530
+                                    305 *                                                                       PCR02540
+0002D4 D5E4C3C5E7E34040             306 RPLIST   DC       CL8'NUCEXT'                                           PCR02550
+0002DC                              307 RPNAME   DS       CL8                                                   PCR02560
+0002E4 0000000000000000             308          DC       16X'00'                                               PCR02570
+                                    309 *                                                                       PCR02580
+0002F8                              310 PKPLIST  DS       0D                                                    PCR02590
+0002F8                              311 PKPMNAME DS       CL8                                                   PCR02600
+000300 D3D6C1C440404040             312          DC       CL8'LOAD'                                             PCR02610
+000308                              313 PKPFNAME DS       CL8                                                   PCR02620
+000310 FFFFFFFFFFFFFFFF             314          DC       8X'FF'                                                PCR02630
+000318 0000000000000000             315          DC       16X'00'                                               PCR02640
+                                    316 *                                                                       PCR02650
+000328 00000010                     317 MODSTAT  DC       A(LMOD)                                               PCR02660
+                                    318 *                                                                       PCR02670
+000330                              319          LTORG                                                          PCR02680
+000330 D3D6C1C440404040             320                =CL8'LOAD'
+000338 D9C5E2C5E3404040             321                =CL8'RESET'
+000340 00000001                     322                =F'1'
+000344 FF                           323                =X'FF'
+000000                00000 00010   324 XFUNCB   DSECT                                                          PCR02690
+000000                              325 XFCBNAME DS       CL8                                                   PCR02700
+000008                              326 XFCBMODN DS       CL8                                                   PCR02710
+                      00010         327 XFCBLEN  EQU      *-XFCBNAME                                            PCR02720
+                                    328 *                                                                       PCR02730
+000000                00000 00018   329 XPLICB   DSECT                                                          PCR02740
+000000                              330 XPCBNAME DS       CL8                                                   PCR02750
+000008                              331 XPCBNUCX DS       CL8                                                   PCR02760
+000010                              332 XPCBMOD  DS       CL8                                                   PCR02770
+                      00018         333 XPCBLEN  EQU      *-XPCBNAME                                            PCR02780
+                                    334 *                                                                       PCR02790
+000000                00000 00010   335 LFUNCB   DSECT                                                          PCR02800
+000000                              336 LFCBNAME DS       CL8                                                   PCR02810
+i000008                              337 LFCBADDR DS       AL4                                                   PCR02820
+                                                                                                               Page   10
+  Active Usings: RXUSERFN,R12
+D-Loc  Object Code    Addr1 Addr2  Stmt   Source Statement                                  HLASM R6.0  2020/06/17 09.38
+00000C                              338 LFCBFLAG DS       CL1                                                   PCR02830
+00000D                              339 LFCBPAD  DS       CL3                                                   PCR02840
+                      00010         340 LFCBLEN  EQU      *-LFCBNAME                                            PCR02850
+                                    341 *                                                                       PCR02860
+000000                00000 00008   342 PACKCB   DSECT                                                          PCR02870
+000000                              343 PKCBNAME DS       CL8                                                   PCR02880
+                      00008         344 PKCBLEN  EQU      *-PKCBNAME                                            PCR02890
+                                    345          END                                                            PCR02900
+¤
+                                                 Relocation Dictionary                                         Page   11
+   Pos.Id   Rel.Id   Address  Type    Length  Action                                        HLASM R6.0  2020/06/17 09.38
+  00000001 00000001 00000328   A         4       +
+¤
+                               Ordinary Symbol and Literal Cross Reference                                     Page   12
+Symbol   Length   Value     Id    R Type Asm  Program   Defn References                     HLASM R6.0  2020/06/17 09.38
+FIXLMOD       1 0000003A 00000001     U                   88   80B
+LEAVE         1 000001AA 00000001     U                  226   93B   99B  102B  123B  147B  170B  190B  199B  211B
+LFCBADDR      4 00000008 FFFFFFFD     R  A               337  166
+LFCBFLAG      1 0000000C FFFFFFFD     C  C               338  169M  213   217M
+LFCBLEN       1 00000010 FFFFFFFD A   U                  340  160   212
+LFCBNAME      8 00000000 FFFFFFFD     C  C               336  161   165   216   340
+LFUNCB        1 00000000 FFFFFFFD     J                  335  155U  206U
+LFUNTAB       1 00000210 00000001     U                  269  154   205
+LMOD          1 00000010 00000001     U                   74  317
+LMODPL        8 00000218 00000001     C  C               276   75
+LMPNAME       8 00000220 00000001     C  C               277   76M
+LOADREQ       1 00000072 00000001     U                  106   95B
+LPADDR        4 000002C4 00000001     R  A               301  166M
+LPLIST        8 000002B0 00000001     C  C               298  164
+LPNAME        8 000002B8 00000001     C  C               299  165M
+LR$BAD        1 0000016A 00000001     U                  196  124B  148B  182B
+LR$LLOOP      2 00000100 00000001     I                  157  162B
+LR$LOCAL      1 000000FA 00000001     U                  153  135B
+LR$PACKS      1 00000136 00000001     U                  175  159B
+LR$PKLP       2 00000142 00000001     I                  180  189B
+LR$PLI        2 000000B2 00000001     I                  129  112B
+LR$PLOOP      2 000000BA 00000001     I                  133  138B
+LR$XLOOP      2 00000078 00000001     I                  110  115B
+MODSTAT       4 00000328 00000001     A  A               317   72    90M
+NOLMOD        1 00000042 00000001     U                   91   89
+PACKCB        1 00000000 FFFFFFFC     J                  342  177U
+PACKTAB       1 000001B0 00000001     U                  239  176
+PCRMOD        8 000002A0 00000001     C  C               295  143M
+PCRNAME       8 00000288 00000001     C  C               292  141M
+PCRNUCX       8 00000298 00000001     C  C               294  142M
+PCRPLIST      8 00000278 00000001     C  C               290  140
+PKCBLEN       1 00000008 FFFFFFFC A   U                  344  183
+PKCBNAME      8 00000000 FFFFFFFC     C  C               343  184   344
+PKPFNAME      8 00000308 00000001     C  C               313  179M
+PKPLIST       8 000002F8 00000001     D  D               310  185
+PKPMNAME      8 000002F8 00000001     C  C               311  184M
+RESETREQ      1 00000176 00000001     U                  204   97B
+RPLIST        8 000002D4 00000001     C  C               306  208
+RPNAME        8 000002DC 00000001     C  C               307  216M
+RR$LOOP       2 00000180 00000001     I                  209  214B  220B
+RXUSERFN      1 00000000 00000001     J                   11    9    10
+R0            1 00000000 00000001 A   U                   20   67    82M
+R1            1 00000001 00000001 A   U                   21   68    75M   81M  117M  140M  164M  185M  208M
+R10           1 0000000A 00000001 A   U                   30   67M   82
+R11           1 0000000B 00000001 A   U                   31   68M   76    81    92    94    96    98   114   137   161
+                                                              179
+R12           1 0000000C 00000001 A   U                   32   64U   66    86M  227M
+R13           1 0000000D 00000001 A   U                   33   66    85    86   101   198   227
+R14           1 0000000E 00000001 A   U                   34   66    86M   87B  227M  228B
+R15           1 0000000F 00000001 A   U                   35   65M   65    79M   79    85   100M  101   122   146   188M
+                                                              188   197M  198
+R4            1 00000004 00000001 A   U                   24  107M  108U  109   110M  111   113   125D  129M  130M  131U
+                                                              132   133M  134   136   149D  154M  155U  156   157M  158
+                                                              160   171D  176M  177U  178   180M  181   183   191D  205M
+                                                              206U  207   209M  210   212   221D
+¤
+                               Ordinary Symbol and Literal Cross Reference                                     Page   13
+Symbol   Length   Value     Id    R Type Asm  Program   Defn References                     HLASM R6.0  2020/06/17 09.38
+R5            1 00000005 00000001 A   U                   25  109M  110   113M  129   132M  133   136M  156M  157   160M
+                                                              178M  180   183M  207M  209   212M
+R9            1 00000009 00000001 A   U                   29   72M   73B   89M   90
+XFCBLEN       1 00000010 FFFFFFFF A   U                  327  113
+XFCBMODN      8 00000008 FFFFFFFF     C  C               326  119
+XFCBNAME      8 00000000 FFFFFFFF     C  C               325  114   118   327
+XFUNCB        1 00000000 FFFFFFFF     J                  324  108U
+XFUNTAB       1 000001B8 00000001     U                  248  107
+XPCBLEN       1 00000018 FFFFFFFE A   U                  333  136
+XPCBMOD       8 00000010 FFFFFFFE     C  C               332  143
+XPCBNAME      8 00000000 FFFFFFFE     C  C               330  137   141   333
+XPCBNUCX      8 00000008 FFFFFFFE     C  C               331  142
+XPLICB        1 00000000 FFFFFFFE     J                  329  131U
+XPLIST        8 00000248 00000001     C  C               283  117
+XPLITAB       1 000001C0 00000001     U                  258  130
+XPMODN        8 00000258 00000001     C  C               285  119M
+XPNAME        8 00000250 00000001     C  C               284  118M
+=CL8'LOAD'
+              8 00000330 00000001     C                  320   94
+=CL8'RESET'
+              8 00000338 00000001     C                  321   96
+=F'1'         4 00000340 00000001     F                  322  122   146
+=X'FF'        1 00000344 00000001     X                  323   98
+¤
+                                  Unreferenced Symbols Defined in CSECTs                                       Page   14
+  Defn  Symbol                                                                              HLASM R6.0  2020/06/17 09.38
+    46  C0
+    47  C1
+    56  C10
+    57  C11
+    58  C12
+    59  C13
+    60  C14
+    61  C15
+    48  C2
+    49  C3
+    50  C4
+    51  C5
+    52  C6
+    53  C7
+    54  C8
+    55  C9
+    39  F0
+    40  F2
+    41  F4
+    42  F6
+   273  LFUNEND
+   241  PACKTEND
+    22  R2
+    23  R3
+    26  R6
+    27  R7
+    28  R8
+   250  XFUNEND
+   262  XPLIEND
+¤
+                                          Macro and Copy Code Source Summary                                   Page   15
+ Con Source                                        Volume    Members                        HLASM R6.0  2020/06/17 09.38
+  L2 DMSGPI   MACLIB   S2                          MNT190    REGEQU
+¤
+                                                Dsect Cross Reference                                          Page   16
+Dsect     Length      Id       Defn                                                         HLASM R6.0  2020/06/17 09.38
+LFUNCB   00000010  FFFFFFFD     335
+PACKCB   00000008  FFFFFFFC     342
+XFUNCB   00000010  FFFFFFFF     324
+XPLICB   00000018  FFFFFFFE     329
+¤
+                                                      Using Map                                                Page   17
+                                                                                            HLASM R6.0  2020/06/17 09.38
+  Stmt  -----Location----- Action ----------------Using----------------- Reg Max     Last Label and Using Text
+          Count      Id           Type          Value    Range     Id        Disp    Stmt
+    64  00000000  00000001 USING  ORDINARY    00000000 00001000 00000001  12 00344    220 *,R12
+   108  00000076  00000001 USING  ORDINARY    00000000 00001000 FFFFFFFF   4 00008    119 XFUNCB,R4
+   125  000000B2  00000001 DROP                                            4              R4
+   131  000000B8  00000001 USING  ORDINARY    00000000 00001000 FFFFFFFE   4 00010    143 XPLICB,R4
+   149  000000FA  00000001 DROP                                            4              R4
+   155  000000FE  00000001 USING  ORDINARY    00000000 00001000 FFFFFFFD   4 0000C    169 LFUNCB,R4
+   171  00000136  00000001 DROP                                            4              R4
+   177  0000013A  00000001 USING  ORDINARY    00000000 00001000 FFFFFFFC   4 00000    184 PACKCB,R4
+   191  0000016A  00000001 DROP                                            4              R4
+   206  0000017A  00000001 USING  ORDINARY    00000000 00001000 FFFFFFFD   4 0000C    217 LFUNCB,R4
+   221  000001AA  00000001 DROP                                            4              R4
+¤
+                                   General Purpose Register Cross Reference                                    Page   18
+ Register  References (M=modified, B=branch, U=USING, D=DROP, N=index)                      HLASM R6.0  2020/06/17 09.38
+    0(0)      66    67    82M   86M  227M
+    1(1)      66    68    75M   81M   86M  117M  140M  164M  185M  208M  227M
+    2(2)      66    86M  227M
+    3(3)      66    86M  227M
+    4(4)      66    86M  107M  108U  109   110M  111   113N  125D  129M  130M  131U  132   133M  134   136N  149D  154M
+             155U  156   157M  158   160N  171D  176M  177U  178   180M  181   183N  191D  205M  206U  207   209M  210
+             212N  221D  227M
+    5(5)      66    86M  109M  110   113M  129   132M  133   136M  156M  157   160M  178M  180   183M  207M  209   212M
+             227M
+    6(6)      66    86M  227M
+    7(7)      66    86M  227M
+    8(8)      66    86M  227M
+    9(9)      66    72M   73B   86M   89M   90   227M
+   10(A)      66    67M   82    86M  227M
+   11(B)      66    68M   76    81    86M   92    94    96    98   114   137   161   179   227M
+   12(C)      64U   66    86M  227M
+   13(D)      66    85N   86   101N  198N  227
+   14(E)      66    86M   87B  227M  228B
+   15(F)      65M   65    66    79M   79    85    86M  100M  101   122   146   188M  188   197M  198   227M
+¤
+                                  Diagnostic Cross Reference and Assembler Summary                             Page   19
+                                                                                            HLASM R6.0  2020/06/17 09.38
+     No Statements Flagged in this Assembly
+HIGH LEVEL ASSEMBLER, 5696-234, RELEASE 6.0, PTF UI65289
+SYSTEM: CMS 29                     JOBNAME: (NOJOB)     STEPNAME: (NOSTEP)   PROCSTEP: (NOPROC)
+Data Sets Allocated for this Assembly
+ Con DDname   Data Set Name                                Volume  Member
+  P1 SYSIN    PCRRXFN  ASSEMBLE B1                         ** SFS
+  L1 SYSLIB   PCR      MACLIB   B1                         ** SFS
+  L2          DMSGPI   MACLIB   S2                         MNT190
+     SYSLIN   PCRRXFN  TEXT     B1                         ** SFS
+     SYSPRINT PCRRXFN  LISTING  B1                         ** SFS
+
+  19372K allocated to Buffer Pool       Storage required     200K
+    290 Primary Input Records Read          171 Library Records Read                  0 Work File Reads
+      0 ASMAOPT Records Read                612 Primary Print Records Written         0 Work File Writes
+     23 Object Records Written                0 ADATA Records Written
+Assembly Start Time: 09.38.07 Stop Time: 09.38.07 Processor Time: 00.00.00.0339
+Return Code 000

@@ -1,0 +1,55 @@
+/*
+   Used to Compile and GENMOD the PCR ASSEMBLE file.
+ 
+   It will also Compile the PCRPLI PLI program as needed, which is
+   used to include a PLISTART text deck for TERMing the PLI Environment.
+*/
+ 
+address '';
+ 
+'GLOBAL MACLIB PCR DMSGPI OSMACRO'
+'GLOBAL TXTLIB SCEELKED'
+ 
+/* Is the PCRPLI program compiled? */
+'STATE PCRPLI TEXT *';
+if rc^=0 then do;
+  options = 'NCT F(I) NIS LC(125)' ,
+            'M SYSTEM(MVS)' ,
+            'STMT NSEQ OPT(TIME) MAR(1,72)';
+  say 'PCRMAKE: Compiling PCRPLI...'
+  fntm =  PCRPLI
+  address 'CMS' 'CMDCALL PLIOPT' fntm '(' options;
+  if rc^=0 then do;
+    say 'PCRMAKE: Could not compile PCRPLI, rc('rc')';
+    exit rc;
+  end;
+end;
+ 
+/* Now compile the PCR ASSEMBLE file */
+fn = 'PCR';
+ 
+'COPYFILE' fn 'ASSEMBLE A ( REPLACE RECFM F LRECL 80 OLDD'
+say 'PCRMAKE: Compiling' fn 'ASSEMBLE...'
+'HLASM' fn;
+trc=rc;
+address '' 'COPYFILE' fn 'ASSEMBLE A ( REPLACE RECFM V TRUNC OLDD';
+if trc^=0 then do;
+  say 'PCRMAKE: Could not compile PCR ASSEMBLE, rc('trc')';
+  exit trc;
+end;
+ 
+/* Now GENMOD the PCR program */
+'EXECIO 1 DISKW' fn 'TEXT * 0 (FINIS STRING  ENTRY' fn;
+'LOAD' fn '(CLEAR RLDSAVE NODUP';
+if rc=0 then do;
+  'GENMOD' fn '(FROM' fn;
+end;
+trc = rc;
+if trc^=0 then do;
+  say 'PCRMAKE: Could not LOAD/GENMOD PCR, rc('trc')';
+  exit trc;
+end;
+ 
+say 'PCRMAKE: PCR is ready for your use'
+ 
+exit trc;

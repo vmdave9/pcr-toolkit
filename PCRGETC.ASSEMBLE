@@ -1,0 +1,35 @@
+*********************************************************************** PCR00010
+*  PLI SubRoutine                                                       PCR00020
+*  Will return the User Word from the Nucext PCR, which should point    PCR00030
+*  to the active PCRCB.                                                 PCR00040
+*  This routine will be linkedited into any PL/I module that calls      PCR00050
+*  it to obtain the address of the active PCRCB.                        PCR00060
+*                                                                       PCR00070
+PCRGETC  AMODE 31                                                       PCR00080
+PCRGETC  RMODE ANY                                                      PCR00090
+PCRGETC  CSECT                                                          PCR00100
+                                                                        PCR00110
+         REGEQU                                                         PCR00120
+         STM      R14,R12,12(R13)                                       PCR00130
+         LR       R10,R15                                               PCR00140
+         USING    PCRGETC,R10                                           PCR00150
+*                                                                       PCR00160
+* Where to put the value?                                               PCR00170
+*                                                                       PCR00180
+         L        R2,0(R1)     ;Here's the address to modify            PCR00190
+*                                                                       PCR00200
+* Get the PCR User Word                                                 PCR00210
+*                                                                       PCR00220
+         NUCEXT   QUERY,NAME='PCR',ERROR=LEAVE                          PCR00230
+         USING    SCBLOCK,R1                                            PCR00240
+         L        R3,SCBWKWRD                                           PCR00250
+         MVC      0(4,R2),0(R3)                                         PCR00260
+         DROP     R1                                                    PCR00270
+         XR       R15,R15                                               PCR00280
+LEAVE    EQU      *                                                     PCR00290
+         ST       R15,16(R13)                                           PCR00300
+         LM       R14,R12,12(R13)                                       PCR00310
+         BR       R14                                                   PCR00320
+*                                                                       PCR00330
+         SCBLOCK                                                        PCR00340
+         END                                                            PCR00350

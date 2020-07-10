@@ -1,0 +1,9 @@
+                 MACRO                                                  PCR00010
+                 PCREVA                                                 PCR00020
+PCREV            DSECT                                                  PCR00030
+EV_BYTES         DS  F          ;Number of bytes in DATA                PCR00040
+EV_DWORDS        DS  F          ;Dwords within EV                       PCR00050
+EV_NEWBYTES      DS  F          ;New size required (of DATA)            PCR00060
+EV_USED          DS  F          ;Number of data bytes used              PCR00070
+EV_DATA          DS  CL1        ;The return data                        PCR00080
+                 MEND                                                   PCR00090

@@ -1,0 +1,290 @@
+*********************************************************************** PCR00010
+*  Rexx Function Library interface to PCR                               PCR00020
+*                                                                       PCR00030
+*  - Can be renamed to RXUSERFN, RXLOCFN or RXSYSFN                     PCR00040
+*  - Autoloads PLI program that are Rexx Funs/Subs via PCR LOAD         PCR00050
+*                                                                       PCR00060
+*********************************************************************** PCR00070
+*                                                                       PCR00080
+RXUSERFN AMODE 31                                                       PCR00090
+RXUSERFN RMODE ANY                                                      PCR00100
+RXUSERFN CSECT                                                          PCR00110
+         REGEQU                                                         PCR00120
+         USING    *,R12                                                 PCR00130
+         XR       R15,R15      ;This will default RC to 0               PCR00140
+         STM      R14,R12,12(R13)                                       PCR00150
+         LR       R10,R0       ;Save these Regs                         PCR00160
+         LR       R11,R1       ;Save these Regs                         PCR00170
+*                                                                       PCR00180
+* Load as Nucleus Extension                                             PCR00190
+*                                                                       PCR00200
+         L        R9,MODSTAT                                            PCR00210
+         BR       R9           ;Either NOLMOD or LMOD                   PCR00220
+LMOD     EQU      *                                                     PCR00230
+         LA       R1,LMODPL    ;Get parms for Nucxloading               PCR00240
+         MVC      LMPNAME,0(R11)                                        PCR00250
+         SVC      202          ;..                                      PCR00260
+         DC       AL4(1)       ;Check error ourself                     PCR00270
+         LTR      R15,R15      ;Was it good                             PCR00280
+         BNE      FIXLMOD      ;No, must already be an extension        PCR00290
+         LR       R1,R11                                                PCR00300
+         LR       R0,R10                                                PCR00310
+         SVC      202          ;Invoke the now Nucxloaded module        PCR00320
+         DC       AL4(1)                                                PCR00330
+         ST       R15,16(R13)  ;save return                             PCR00340
+         LM       R14,R12,12(R13) ;And leave...                         PCR00350
+         BR       R14                                                   PCR00360
+FIXLMOD  EQU      *                                                     PCR00370
+         LA       R9,NOLMOD                                             PCR00380
+         ST       R9,MODSTAT   ;Now Nucxload will to be done again      PCR00390
+NOLMOD   EQU      *                                                     PCR00400
+         CLI      8(R11),X'FF'  ;Any parms                              PCR00410
+         BE       LEAVE        ;No, load and leave                      PCR00420
+         CLC      8(8,R11),=CL8'LOAD'                                   PCR00430
+         BE       LOADREQ      ;Do Load request                         PCR00440
+         CLC      8(8,R11),=CL8'RESET'                                  PCR00450
+         BE       RESETREQ     ;Do Reset request                        PCR00460
+         CLM      R11,B'1000',=X'FF' ;Could be an abend call            PCR00470
+         BE       LEAVE                                                 PCR00480
+         LA       R15,4        ;Set error code                          PCR00490
+         ST       R15,16(R13)                                           PCR00500
+         B        LEAVE                                                 PCR00510
+************************                                                PCR00520
+** Load Request - External functions first                              PCR00530
+*                                                                       PCR00540
+LOADREQ  EQU      *                                                     PCR00550
+         LA       R4,XFUNTAB  ;Access the function table                PCR00560
+         USING    XFUNCB,R4                                             PCR00570
+         LR       R5,R4                                                 PCR00580
+LR$XLOOP LR       R4,R5                                                 PCR00590
+         CLI      0(R4),X'FF'  ;Last entry?                             PCR00600
+         BE       LR$PLI                                                PCR00610
+         LA       R5,XFCBLEN(R4)                                        PCR00620
+         CLC      16(8,R11),XFCBNAME ;Does name match                   PCR00630
+         BNE      LR$XLOOP                                              PCR00640
+* Found an external one                                                 PCR00650
+         LA       R1,XPLIST         ;Set up to issue NUCXLOAD           PCR00660
+         MVC      XPNAME,XFCBNAME    ;                                  PCR00670
+         MVC      XPMODN,XFCBMODN    ;                                  PCR00680
+         SVC      202               ;                                   PCR00690
+         DC       AL4(1)                                                PCR00700
+         C        R15,=F'1'         ;More than error 1                  PCR00710
+         BNH      LEAVE             ;Return with good news              PCR00720
+         B        LR$BAD                                                PCR00730
+         DROP     R4                                                    PCR00740
+**********                                                              PCR00750
+** Search for PLI External functions                                    PCR00760
+**                                                                      PCR00770
+LR$PLI   LR       R4,R5                                                 PCR00780
+         LA       R4,XPLITAB  ;Access the function table                PCR00790
+         USING    XPLICB,R4                                             PCR00800
+         LR       R5,R4                                                 PCR00810
+LR$PLOOP LR       R4,R5                                                 PCR00820
+         CLI      0(R4),X'FF'  ;Last entry?                             PCR00830
+         BE       LR$LOCAL                                              PCR00840
+         LA       R5,XPCBLEN(R4)                                        PCR00850
+         CLC      16(8,R11),XPCBNAME ;Does name match                   PCR00860
+         BNE      LR$PLOOP                                              PCR00870
+* Found an external one                                                 PCR00880
+         LA       R1,PCRPLIST      ;Set up to issue PCR LOAD            PCR00890
+         MVC      PCRNAME,XPCBNAME    ;                                 PCR00900
+         MVC      PCRNUCX,XPCBNUCX    ;                                 PCR00910
+         MVC      PCRMOD,XPCBMOD      ;                                 PCR00920
+         SVC      202               ;                                   PCR00930
+         DC       AL4(1)                                                PCR00940
+         C        R15,=F'1'         ;More than error 1                  PCR00950
+         BNH      LEAVE             ;Return with good news              PCR00960
+         B        LR$BAD                                                PCR00970
+         DROP     R4                                                    PCR00980
+**********                                                              PCR00990
+** Search for Local (link) functions                                    PCR01000
+**                                                                      PCR01010
+LR$LOCAL EQU      *                                                     PCR01020
+         LA       R4,LFUNTAB  ;Access the local function table          PCR01030
+         USING    LFUNCB,R4                                             PCR01040
+         LR       R5,R4                                                 PCR01050
+LR$LLOOP LR       R4,R5                                                 PCR01060
+         CLI      0(R4),X'FF'  ;Last entry?                             PCR01070
+         BE       LR$PACKS                                              PCR01080
+         LA       R5,LFCBLEN(R4)                                        PCR01090
+         CLC      16(8,R11),LFCBNAME ;Does name match                   PCR01100
+         BNE      LR$LLOOP                                              PCR01110
+* Found a local link one                                                PCR01120
+         LA       R1,LPLIST         ;Set up to issue NUCEXT             PCR01130
+         MVC      LPNAME,LFCBNAME                                       PCR01140
+         MVC      LPADDR,LFCBADDR                                       PCR01150
+         SVC      202                                                   PCR01160
+         DC       AL4(1)                                                PCR01170
+         MVI      LFCBFLAG,C'Y'      ;Indicate it is loaded             PCR01180
+         B        LEAVE                                                 PCR01190
+         DROP     R4                                                    PCR01200
+**********                                                              PCR01210
+** Search other packages next (and last)                                PCR01220
+**                                                                      PCR01230
+LR$PACKS EQU      *                                                     PCR01240
+         LA       R4,PACKTAB  ;Access the local function table          PCR01250
+         USING    PACKCB,R4                                             PCR01260
+         LR       R5,R4                                                 PCR01270
+         MVC      PKPFNAME,16(R11) ;Move over request from rexx         PCR01280
+LR$PKLP  LR       R4,R5                                                 PCR01290
+         CLI      0(R4),X'FF'  ;Last entry?                             PCR01300
+         BE       LR$BAD                                                PCR01310
+         LA       R5,PKCBLEN(R4)                                        PCR01320
+         MVC      PKPMNAME,PKCBNAME   ;Move name of package into PLIST  PCR01330
+         LA       R1,PKPLIST        ;call this package                  PCR01340
+         SVC      202                                                   PCR01350
+         DC       AL4(1)                                                PCR01360
+         LTR      R15,R15                                               PCR01370
+         BNE      LR$PKLP           ;Not in this package - search more  PCR01380
+         B        LEAVE             ;Yes, found....                     PCR01390
+         DROP     R4                                                    PCR01400
+********************************                                        PCR01410
+**                                                                      PCR01420
+** The name was not found - return with rc=4                            PCR01430
+**                                                                      PCR01440
+LR$BAD   EQU      *                                                     PCR01450
+         LA       R15,4        ;Set error code of 1                     PCR01460
+         ST       R15,16(R13)                                           PCR01470
+         B        LEAVE                                                 PCR01480
+***************************************                                 PCR01490
+**                                                                      PCR01500
+** Reset Request - Must undefine any local ones                         PCR01510
+**                                                                      PCR01520
+RESETREQ EQU      *                                                     PCR01530
+         LA       R4,LFUNTAB  ;Access the function table                PCR01540
+         USING    LFUNCB,R4                                             PCR01550
+         LR       R5,R4                                                 PCR01560
+         LA       R1,RPLIST                                             PCR01570
+RR$LOOP  LR       R4,R5                                                 PCR01580
+         CLI      0(R4),X'FF'  ;Last entry?                             PCR01590
+         BE       LEAVE                                                 PCR01600
+         LA       R5,LFCBLEN(R4)                                        PCR01610
+         CLI      LFCBFLAG,C'Y'   ;Is it a NUCEXT?                      PCR01620
+         BNE      RR$LOOP                                               PCR01630
+* Found one to undefine                                                 PCR01640
+         MVC      RPNAME,LFCBNAME                                       PCR01650
+         MVI      LFCBFLAG,C'N'                                         PCR01660
+         SVC      202                                                   PCR01670
+         DC       AL4(1)                                                PCR01680
+         B        RR$LOOP                                               PCR01690
+         DROP     R4                                                    PCR01700
+***********************************                                     PCR01710
+**                                                                      PCR01720
+**Leave now                                                             PCR01730
+**                                                                      PCR01740
+LEAVE    EQU      *                                                     PCR01750
+         LM       R14,R12,12(R13)                                       PCR01760
+         BR       R14                                                   PCR01770
+**********************************************                          PCR01780
+**                                                                      PCR01790
+** Other function packatge modules to be search (called)                PCR01800
+** (Since Rexx will only search RXSYSFN, RXLOCFN, and RXUSERFN)         PCR01810
+**                                                                      PCR01820
+** Make sure other RXUSERFN or RXLOCFN modules can handle having        PCR01830
+** a different name before renaming them and placing them into          PCR01840
+** this table.                                                          PCR01850
+**                                                                      PCR01860
+         DS       0D                                                    PCR01870
+PACKTAB  EQU      *                                                     PCR01880
+**       DC       CL8'RXUSERF2'       ;Other module to call             PCR01890
+PACKTEND DC       8X'FF'                                                PCR01900
+**********************************************                          PCR01910
+**                                                                      PCR01920
+** Functions located Externally in their own modules                    PCR01930
+** (This table is search first, then the Local table)                   PCR01940
+**                                                                      PCR01950
+         DS       0D                                                    PCR01960
+XFUNTAB  EQU      *                                                     PCR01970
+***      DC       CL16'RXASM   ASM'       ;RXname/Modname               PCR01980
+XFUNEND  DC       8X'FF'                                                PCR01990
+**********************************************                          PCR02000
+**                                                                      PCR02010
+** Functions located Externally and are PLI programs                    PCR02020
+** (Searched after XFUN, but before internal)                           PCR02030
+** Three names are given, Rexx, Nucxload, and Module)                   PCR02040
+**                                                                      PCR02050
+         DS       0D                                                    PCR02060
+XPLITAB  EQU      *                                                     PCR02070
+         DC       CL24'RXPLIFN1rxplifn1VERIFPCR' Rexx/Nucx/Mod          PCR02080
+         DC       CL24'RXPLIFN2rxplifn2VERIFPCR' Rexx/Nucx/Mod          PCR02090
+         DC       CL24'RXPLIFN3rxplifn3VERIFPCR' Rexx/Nucx/Mod          PCR02100
+XPLIEND  DC       8X'FF'                                                PCR02110
+**********************************************                          PCR02120
+**                                                                      PCR02130
+** Functions linked within this module as V() constants                 PCR02140
+** (This table is search last, after the External table)                PCR02150
+**                                                                      PCR02160
+         DS       0D                                                    PCR02170
+LFUNTAB  EQU      *                                                     PCR02180
+*        DC       CL8'RXA2E'    ;RXname of entry                        PCR02190
+*        DC       V(A2E)        ;RXname/Modname                         PCR02200
+*        DC       CL4'N'        ;flags                                  PCR02210
+LFUNEND  DC       8X'FF'                                                PCR02220
+**********************************************                          PCR02230
+         DS       0D                                                    PCR02240
+LMODPL   DC       CL8'NUCXLOAD'                                         PCR02250
+LMPNAME  DC       CL8'RXUSERFN'                                         PCR02260
+         DC       CL8'('                                                PCR02270
+         DC       CL8'SYSTEM'                                           PCR02280
+         DC       CL8'SERVICE'                                          PCR02290
+         DC       8X'FF'                                                PCR02300
+*                                                                       PCR02310
+XPLIST   DC       CL8'NUCXLOAD'                                         PCR02320
+XPNAME   DS       CL8                                                   PCR02330
+XPMODN   DS       CL8                                                   PCR02340
+         DC       CL8'('                                                PCR02350
+         DC       CL8'SYSTEM'                                           PCR02360
+         DC       8X'FF'                                                PCR02370
+*                                                                       PCR02380
+PCRPLIST DC       CL8'PCR'                                              PCR02390
+         DC       CL8'LOAD'                                             PCR02400
+PCRNAME  DS       CL8                                                   PCR02410
+         DC       CL8'REXX'                                             PCR02420
+PCRNUCX  DS       CL8                                                   PCR02430
+PCRMOD   DS       CL8                                                   PCR02440
+         DC       8X'FF'                                                PCR02450
+*                                                                       PCR02460
+LPLIST   DC       CL8'NUCEXT'                                           PCR02470
+LPNAME   DS       CL8                                                   PCR02480
+         DC       X'FF048000'                                           PCR02490
+LPADDR   DS       AL4                                                   PCR02500
+         DC       A(0)                                                  PCR02510
+         DC       A(0)                                                  PCR02520
+         DC       A(0)                                                  PCR02530
+*                                                                       PCR02540
+RPLIST   DC       CL8'NUCEXT'                                           PCR02550
+RPNAME   DS       CL8                                                   PCR02560
+         DC       16X'00'                                               PCR02570
+*                                                                       PCR02580
+PKPLIST  DS       0D                                                    PCR02590
+PKPMNAME DS       CL8                                                   PCR02600
+         DC       CL8'LOAD'                                             PCR02610
+PKPFNAME DS       CL8                                                   PCR02620
+         DC       8X'FF'                                                PCR02630
+         DC       16X'00'                                               PCR02640
+*                                                                       PCR02650
+MODSTAT  DC       A(LMOD)                                               PCR02660
+*                                                                       PCR02670
+         LTORG                                                          PCR02680
+XFUNCB   DSECT                                                          PCR02690
+XFCBNAME DS       CL8                                                   PCR02700
+XFCBMODN DS       CL8                                                   PCR02710
+XFCBLEN  EQU      *-XFCBNAME                                            PCR02720
+*                                                                       PCR02730
+XPLICB   DSECT                                                          PCR02740
+XPCBNAME DS       CL8                                                   PCR02750
+XPCBNUCX DS       CL8                                                   PCR02760
+XPCBMOD  DS       CL8                                                   PCR02770
+XPCBLEN  EQU      *-XPCBNAME                                            PCR02780
+*                                                                       PCR02790
+LFUNCB   DSECT                                                          PCR02800
+LFCBNAME DS       CL8                                                   PCR02810
+LFCBADDR DS       AL4                                                   PCR02820
+LFCBFLAG DS       CL1                                                   PCR02830
+LFCBPAD  DS       CL3                                                   PCR02840
+LFCBLEN  EQU      *-LFCBNAME                                            PCR02850
+*                                                                       PCR02860
+PACKCB   DSECT                                                          PCR02870
+PKCBNAME DS       CL8                                                   PCR02880
+PKCBLEN  EQU      *-PKCBNAME                                            PCR02890
+         END                                                            PCR02900

@@ -1,0 +1,28 @@
+/* Short exec to verify PCR installation */                                     
+   trace o                                                                      
+                                                                                
+   'pcr drop *'                                        /* just in case */       
+   'pcr load plifn1 rexx verifpcr'         /* load the VERIFPCR module */       
+   'pcr load plifn2 rexx verifpcr'   /* accessible as a REXX function, */       
+   'pcr load plifn3 rexx verifpcr'      /* or as a REXX subroutine.    */       
+   'pcr load plisub subc verifpcr'      /* As a SUBCOMMAND environment */       
+   'pcr load plicmd cmsc verifpcr'         /* As a normal CMS command  */       
+   'pcr load pliimd immc verifpcr'      /* and as an Immediate command */       
+   'nucxmap'                    /* show the user what's been NUCXLOAD  */       
+/* Invoke plifn1 twice and display what it returns */                           
+   say length(PLIFN1('Arg1','Arg2')) PLIFN1(1,2)                                
+   say PLIFN2('Arg1','Arg2')    /* invoke VERIFPCR module via "plifn2" */       
+   rc = PLIFN3(6,7,8)                              /* and via "plifn3" */       
+   say rc                                                                       
+   call PLIFN3 arg1,arg2,arg3,arg4                            /* again */       
+                                                                                
+  /* set up and test a subcommand environment */                                
+   say 'testing subcommand enviornment'                                         
+   address plisub           /* subcommand environment name is "plisub" */       
+   'a string to pli subcom handler'                                             
+   'an other string'                                                            
+   'and still one more'                                                         
+   address cms             /* execute VERFPCR as a regular CMS command */       
+   'PLICMD Hello from the CMS command: hereisareallylongparametername'          
+   'pcr term'                                      /*Not really needed */       
+   exit                                                                         

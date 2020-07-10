@@ -1,0 +1,52 @@
+ /* PLI/CMS/Rexx Control Block */                                       PCR00010
+ Declare                                                                PCR00020
+   PCRCB_ptr              pointer,                                      PCR00030
+   PCRCB_arg_c256         char(256) based(PCRCB_arg_ptr),               PCR00040
+   PCRCB_arg_c32767       char(32767) based(PCRCB_arg_ptr),             PCR00050
+   1 PCRCB_struct         based(PCRCB_ptr),                             PCR00060
+    2 PCRCB_reserved      pointer,                                      PCR00070
+    2 PCRCB_global_ptr    pointer,  /* STATIC to ALL PLI programs */    PCR00080
+    2 PCRCB_local_ptr     pointer,  /* STATIC for this PLI program */   PCR00090
+    2 PCRCB_arg_ptr       pointer,  /* Points to Argstring */           PCR00100
+    2 PCRCB_arg_len       fixed bin(31), /*len of Argstring */          PCR00110
+    2 PCRCB_type          char(4),  /* IMMC, SUBC, CMSC, REXX */        PCR00120
+    2 PCRCB_name          char(8),  /* Name of PCR entry */             PCR00130
+    2 PCRCB_nucxname      char(8),  /* Nucname of PLI program */        PCR00140
+    2 PCRCB_modname       char(8),  /* Module name of PLI program */    PCR00150
+    2 PCRCB_loadlib       char(8),  /* Loadlib that PLI came from */    PCR00160
+    2 PCRCB_iflag_t       bit(1),   /* PTS IMMED is active (PTE off) */ PCR00170
+    2 PCRCB_iflag_hx      bit(1),   /* PHX IMMED is active */           PCR00180
+    2 PCRCB_iflag_dummy   bit(6),   /* more bit in IFLAG   */           PCR00190
+    2 PCRCB_OPT_endcmd    char(1),  /* Y/N ENDCMD  options specified */ PCR00200
+    2 PCRCB_OPT_noload    char(1),  /* Y/N NOLOAD  options specified */ PCR00210
+    2 PCRCB_loaded        char(1),  /* Y/N A PLI Module was loaded   */ PCR00220
+    2 PCRCB_spec_type     char(1),  /* blank, or E for Endcmd */        PCR00230
+    2 PCRCB_reserved2     char(2),                                      PCR00240
+     /* The RX fields are used only if called as Rexx Fun or Sub */     PCR00250
+    2 PCRCB_RX_type       char(1),  /* Fun or Sub */                    PCR00260
+    2 PCRCB_RX_arglist    pointer,  /* Pointer to arguments */          PCR00270
+    2 PCRCB_RX_argcnt     fixed bin(31), /* Number of Arguments */      PCR00280
+    2 PCRCB_RX_ev_ptr     pointer,  /* Pointer to PCREV */              PCR00290
+    2 PCRCB_RX_entry_eval pointer,  /* routine to get more EV space */  PCR00300
+    2 PCRCB_STOR_OBTAIN   pointer,  /* routine to get memory */         PCR00310
+    2 PCRCB_STOR_RELEASE  pointer;  /* routine to free memory */        PCR00320
+                                                                        PCR00330
+ /* For accessing Rexx Arguments */                                     PCR00340
+ Declare                                                                PCR00350
+   RXARG_ptr          pointer,  /* PCRCB_RX_ARGLIST */                  PCR00360
+   RXARG_c1           char(1)     based(RXARG_addr),                    PCR00370
+   RXARG_c32767       char(32767) based(RXARG_addr),                    PCR00380
+   RXARG_c256         char(256)   based(RXARG_addr),                    PCR00390
+   1 RXARG_struct     based(RXARG_ptr),                                 PCR00400
+    2 RXARG_addr      pointer,       /* Pointer to string */            PCR00410
+    2 RXARG_len       fixed bin(31); /* Length of string */             PCR00420
+                                                                        PCR00430
+ /* Befor calling routines within PCRCB, You must do the following */   PCR00440
+ /*    ENTRYADDR(PCRGETEV)        = PCRCB_RX_entry_eval */              PCR00450
+ /*    ENTRYADDR(PCRSTOR_OBTAIN)  = PCRCB_STOR_OBTAIN   */              PCR00460
+ /*    ENTRYADDR(PCRSTOR_RELEASE) = PCRCB_STOR_RELEASE  */              PCR00470
+ Declare                                                                PCR00480
+   PCRGETC            entry(*) options(INTER RETCODE ASSEMBLER),        PCR00490
+   PCRGETEV           variable entry,                                   PCR00500
+   PCRSTOR_OBTAIN     variable entry(fixed bin(31)) returns(pointer),   PCR00510
+   PCRSTOR_RELEASE    variable entry(pointer);                          PCR00520

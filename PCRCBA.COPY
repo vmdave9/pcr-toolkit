@@ -1,0 +1,28 @@
+                 MACRO                                                  PCR00010
+                 PCRCBA                                                 PCR00020
+PCRCB            DSECT                                                  PCR00030
+CB_NEXT          DS  F          ;Point to next PLI Module               PCR00040
+CB_GLOBAL        DS  F          ;Work area for ALL PLI                  PCR00050
+CB_LOCAL         DS  F          ;Work area for this PLI                 PCR00060
+CB_ARGPTR        DS  F          ;Pointer to Argstring                   PCR00070
+CB_ARGLEN        DS  F          ;Length of Argstring                    PCR00080
+CB_TYPE          DS  CL4        ;REXX, IMME, CMSC, or SUBC              PCR00090
+CB_NAME          DS  CL8        ;Name of Sub/IMME, ect...               PCR00100
+CB_NUCXNAME      DS  CL8        ;Name of programs nucxext               PCR00110
+CB_MODNAME       DS  CL8        ;The PLI modules name                   PCR00120
+CB_LOADLIB       DS  CL8        ;Name of any LOADLIB used (or blanks)   PCR00130
+CB_IFLAG         DS  XL1        ;IMMED Flag byte                        PCR00140
+CB_OPT_ENDCMD    DS  CL1        ;Y/Y ENDCMD  was specified              PCR00150
+CB_OPT_NOLOAD    DS  CL1        ;Y/Y NOLOAD  was specified              PCR00160
+CB_LOADED        DS  CL1        ;Y/N Was Module loaded during PCR LOAD? PCR00170
+CB_SPEC_TYPE     DS  CL1        ;Blank for norm, E for ENDCMD           PCR00180
+CB_DUMMY         DS  CL2        ;filler                                 PCR00190
+CB_RX_TYPE       DS  CL1        ;Fun or Sub                             PCR00200
+CB_RX_ARGLIST    DS  F          ;address of Rexx Arg list               PCR00210
+CB_RX_ARGCNT     DS  F          ;number of Rexx Args                    PCR00220
+CB_RX_EVALBLOK   DS  F          ;address of Rexx EvalBlock              PCR00230
+CB_RX_ENTRY_EVAL DS  F          ;Routine to get more EVAL Space         PCR00240
+CB_PCRSTOR_OBTAIN DS F          ;Routine to get memory                  PCR00250
+CB_PCRSTOR_RELEASE DS F         ;Routine to free memory                 PCR00260
+PCRCB_BYTES      EQU *-PCRCB                                            PCR00270
+                 MEND                                                   PCR00280
